@@ -1,15 +1,17 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from pydantic import BaseModel, Field, EmailStr
+from typing import List, Optional
 import uuid
-from datetime import datetime, timezone
-
+from datetime import datetime, timezone, timedelta
+import jwt
+import bcrypt
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,54 +21,440 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Create the main app without a prefix
-app = FastAPI()
+# JWT Settings
+JWT_SECRET = os.environ.get('JWT_SECRET', 'wedding-secret-key-2024')
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24
 
-# Create a router with the /api prefix
+security = HTTPBearer()
+
+app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# ============ MODELS ============
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
-    
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+# Couple/Mempelai Models
+class CoupleInfo(BaseModel):
+    name: str
+    full_name: str
+    photo: Optional[str] = ""
+    father_name: str
+    mother_name: str
+    child_order: str  # "Putra/Putri pertama dari..."
+    instagram: Optional[str] = ""
+
+class EventInfo(BaseModel):
+    name: str  # "Akad Nikah" atau "Resepsi"
+    date: str
+    time_start: str
+    time_end: str
+    venue_name: str
+    address: str
+    maps_url: Optional[str] = ""
+    maps_embed: Optional[str] = ""
+
+class LoveStoryItem(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    date: str
+    title: str
+    description: str
+    image: Optional[str] = ""
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+class GalleryItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    url: str
+    caption: Optional[str] = ""
 
-# Add your routes to the router instead of directly to app
+class GiftAccount(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    bank_name: str
+    account_number: str
+    account_holder: str
+
+class InvitationSettings(BaseModel):
+    music_url: Optional[str] = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    primary_color: Optional[str] = "#B76E79"
+    secondary_color: Optional[str] = "#F5E6E8"
+    accent_color: Optional[str] = "#D4AF37"
+    font_heading: Optional[str] = "Playfair Display"
+    font_body: Optional[str] = "Manrope"
+    auto_scroll: Optional[bool] = True
+
+class InvitationCreate(BaseModel):
+    groom: CoupleInfo
+    bride: CoupleInfo
+    events: List[EventInfo]
+    love_story: List[LoveStoryItem] = []
+    gallery: List[GalleryItem] = []
+    gifts: List[GiftAccount] = []
+    opening_text: Optional[str] = "Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan acara pernikahan"
+    closing_text: Optional[str] = "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir untuk memberikan doa restu kepada kedua mempelai."
+    video_url: Optional[str] = ""
+    streaming_url: Optional[str] = ""
+    settings: InvitationSettings = InvitationSettings()
+
+class InvitationResponse(BaseModel):
+    id: str
+    user_id: str
+    groom: CoupleInfo
+    bride: CoupleInfo
+    events: List[EventInfo]
+    love_story: List[LoveStoryItem]
+    gallery: List[GalleryItem]
+    gifts: List[GiftAccount]
+    opening_text: str
+    closing_text: str
+    video_url: str
+    streaming_url: str
+    settings: InvitationSettings
+    created_at: str
+    updated_at: str
+
+# RSVP Model
+class RSVPCreate(BaseModel):
+    guest_name: str
+    phone: Optional[str] = ""
+    attendance: str  # "hadir", "tidak_hadir", "belum_pasti"
+    guest_count: int = 1
+
+class RSVPResponse(BaseModel):
+    id: str
+    invitation_id: str
+    guest_name: str
+    phone: str
+    attendance: str
+    guest_count: int
+    created_at: str
+
+# Message/Ucapan Model
+class MessageCreate(BaseModel):
+    guest_name: str
+    message: str
+
+class MessageReply(BaseModel):
+    reply: str
+
+class MessageResponse(BaseModel):
+    id: str
+    invitation_id: str
+    guest_name: str
+    message: str
+    reply: Optional[str] = ""
+    created_at: str
+
+# Stats Model
+class StatsResponse(BaseModel):
+    total_rsvp: int
+    attending: int
+    not_attending: int
+    uncertain: int
+    total_guests: int
+    total_messages: int
+
+# ============ AUTH HELPERS ============
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
+
+def create_token(user_id: str, email: str) -> str:
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS)
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    try:
+        payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("user_id")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+# ============ AUTH ROUTES ============
+
+@api_router.post("/auth/register", response_model=TokenResponse)
+async def register(data: UserCreate):
+    existing = await db.users.find_one({"email": data.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    user_id = str(uuid.uuid4())
+    user_doc = {
+        "id": user_id,
+        "email": data.email,
+        "password": hash_password(data.password),
+        "name": data.name,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(user_doc)
+    
+    token = create_token(user_id, data.email)
+    return TokenResponse(
+        access_token=token,
+        user=UserResponse(id=user_id, email=data.email, name=data.name)
+    )
+
+@api_router.post("/auth/login", response_model=TokenResponse)
+async def login(data: UserLogin):
+    user = await db.users.find_one({"email": data.email}, {"_id": 0})
+    if not user or not verify_password(data.password, user["password"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    token = create_token(user["id"], user["email"])
+    return TokenResponse(
+        access_token=token,
+        user=UserResponse(id=user["id"], email=user["email"], name=user["name"])
+    )
+
+@api_router.get("/auth/me", response_model=UserResponse)
+async def get_me(user: dict = Depends(get_current_user)):
+    return UserResponse(id=user["id"], email=user["email"], name=user["name"])
+
+# ============ INVITATION ROUTES (ADMIN) ============
+
+@api_router.post("/invitations", response_model=InvitationResponse)
+async def create_invitation(data: InvitationCreate, user: dict = Depends(get_current_user)):
+    invitation_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    doc = {
+        "id": invitation_id,
+        "user_id": user["id"],
+        **data.model_dump(),
+        "created_at": now,
+        "updated_at": now
+    }
+    await db.invitations.insert_one(doc)
+    
+    result = await db.invitations.find_one({"id": invitation_id}, {"_id": 0})
+    return result
+
+@api_router.get("/invitations", response_model=List[InvitationResponse])
+async def get_user_invitations(user: dict = Depends(get_current_user)):
+    invitations = await db.invitations.find({"user_id": user["id"]}, {"_id": 0}).to_list(100)
+    return invitations
+
+@api_router.get("/invitations/{invitation_id}", response_model=InvitationResponse)
+async def get_invitation(invitation_id: str, user: dict = Depends(get_current_user)):
+    invitation = await db.invitations.find_one(
+        {"id": invitation_id, "user_id": user["id"]}, {"_id": 0}
+    )
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    return invitation
+
+@api_router.put("/invitations/{invitation_id}", response_model=InvitationResponse)
+async def update_invitation(invitation_id: str, data: InvitationCreate, user: dict = Depends(get_current_user)):
+    existing = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    update_doc = {
+        **data.model_dump(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.invitations.update_one({"id": invitation_id}, {"$set": update_doc})
+    
+    result = await db.invitations.find_one({"id": invitation_id}, {"_id": 0})
+    return result
+
+@api_router.delete("/invitations/{invitation_id}")
+async def delete_invitation(invitation_id: str, user: dict = Depends(get_current_user)):
+    result = await db.invitations.delete_one({"id": invitation_id, "user_id": user["id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Also delete related RSVPs and messages
+    await db.rsvps.delete_many({"invitation_id": invitation_id})
+    await db.messages.delete_many({"invitation_id": invitation_id})
+    
+    return {"message": "Invitation deleted successfully"}
+
+# ============ PUBLIC INVITATION ROUTE ============
+
+@api_router.get("/public/invitation/{invitation_id}")
+async def get_public_invitation(invitation_id: str):
+    invitation = await db.invitations.find_one({"id": invitation_id}, {"_id": 0})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    return invitation
+
+# ============ RSVP ROUTES ============
+
+@api_router.post("/public/rsvp/{invitation_id}", response_model=RSVPResponse)
+async def create_rsvp(invitation_id: str, data: RSVPCreate):
+    invitation = await db.invitations.find_one({"id": invitation_id})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    rsvp_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    doc = {
+        "id": rsvp_id,
+        "invitation_id": invitation_id,
+        **data.model_dump(),
+        "created_at": now
+    }
+    await db.rsvps.insert_one(doc)
+    
+    result = await db.rsvps.find_one({"id": rsvp_id}, {"_id": 0})
+    return result
+
+@api_router.get("/invitations/{invitation_id}/rsvps", response_model=List[RSVPResponse])
+async def get_invitation_rsvps(invitation_id: str, user: dict = Depends(get_current_user)):
+    invitation = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    rsvps = await db.rsvps.find({"invitation_id": invitation_id}, {"_id": 0}).to_list(1000)
+    return rsvps
+
+@api_router.delete("/rsvps/{rsvp_id}")
+async def delete_rsvp(rsvp_id: str, user: dict = Depends(get_current_user)):
+    rsvp = await db.rsvps.find_one({"id": rsvp_id})
+    if not rsvp:
+        raise HTTPException(status_code=404, detail="RSVP not found")
+    
+    invitation = await db.invitations.find_one({"id": rsvp["invitation_id"], "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.rsvps.delete_one({"id": rsvp_id})
+    return {"message": "RSVP deleted successfully"}
+
+# ============ MESSAGE ROUTES ============
+
+@api_router.post("/public/messages/{invitation_id}", response_model=MessageResponse)
+async def create_message(invitation_id: str, data: MessageCreate):
+    invitation = await db.invitations.find_one({"id": invitation_id})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    message_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    doc = {
+        "id": message_id,
+        "invitation_id": invitation_id,
+        **data.model_dump(),
+        "reply": "",
+        "created_at": now
+    }
+    await db.messages.insert_one(doc)
+    
+    result = await db.messages.find_one({"id": message_id}, {"_id": 0})
+    return result
+
+@api_router.get("/public/messages/{invitation_id}", response_model=List[MessageResponse])
+async def get_public_messages(invitation_id: str):
+    messages = await db.messages.find(
+        {"invitation_id": invitation_id}, {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    return messages
+
+@api_router.get("/invitations/{invitation_id}/messages", response_model=List[MessageResponse])
+async def get_invitation_messages(invitation_id: str, user: dict = Depends(get_current_user)):
+    invitation = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    messages = await db.messages.find(
+        {"invitation_id": invitation_id}, {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    return messages
+
+@api_router.put("/messages/{message_id}/reply", response_model=MessageResponse)
+async def reply_message(message_id: str, data: MessageReply, user: dict = Depends(get_current_user)):
+    message = await db.messages.find_one({"id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    invitation = await db.invitations.find_one({"id": message["invitation_id"], "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.messages.update_one({"id": message_id}, {"$set": {"reply": data.reply}})
+    
+    result = await db.messages.find_one({"id": message_id}, {"_id": 0})
+    return result
+
+@api_router.delete("/messages/{message_id}")
+async def delete_message(message_id: str, user: dict = Depends(get_current_user)):
+    message = await db.messages.find_one({"id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    invitation = await db.invitations.find_one({"id": message["invitation_id"], "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    await db.messages.delete_one({"id": message_id})
+    return {"message": "Message deleted successfully"}
+
+# ============ STATS ROUTE ============
+
+@api_router.get("/invitations/{invitation_id}/stats", response_model=StatsResponse)
+async def get_invitation_stats(invitation_id: str, user: dict = Depends(get_current_user)):
+    invitation = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    rsvps = await db.rsvps.find({"invitation_id": invitation_id}, {"_id": 0}).to_list(1000)
+    messages = await db.messages.count_documents({"invitation_id": invitation_id})
+    
+    attending = sum(1 for r in rsvps if r["attendance"] == "hadir")
+    not_attending = sum(1 for r in rsvps if r["attendance"] == "tidak_hadir")
+    uncertain = sum(1 for r in rsvps if r["attendance"] == "belum_pasti")
+    total_guests = sum(r["guest_count"] for r in rsvps if r["attendance"] == "hadir")
+    
+    return StatsResponse(
+        total_rsvp=len(rsvps),
+        attending=attending,
+        not_attending=not_attending,
+        uncertain=uncertain,
+        total_guests=total_guests,
+        total_messages=messages
+    )
+
+# ============ ROOT ============
+
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Wedding Invitation API"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
-
-# Include the router in the main app
+# Include router
 app.include_router(api_router)
 
 app.add_middleware(
@@ -77,7 +465,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
