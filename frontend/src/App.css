@@ -1,34 +1,227 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+html {
+  scroll-behavior: smooth;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+/* Invitation page specific */
+.invitation-container {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #FAFAF9 0%, #F5E6E8 50%, #FAFAF9 100%);
+  position: relative;
+  overflow-x: hidden;
 }
 
-.App-link {
-    color: #61dafb;
+/* Floral decorations */
+.floral-top-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150px;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.floral-top-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  opacity: 0.6;
+  transform: scaleX(-1);
+  pointer-events: none;
+}
+
+.floral-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Section divider */
+.section-divider {
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+  margin: 0 auto;
+}
+
+/* Countdown boxes */
+.countdown-box {
+  background: white;
+  border: 1px solid rgba(183, 110, 121, 0.2);
+  border-radius: 12px;
+  padding: 16px 20px;
+  min-width: 70px;
+  box-shadow: 0 4px 15px rgba(183, 110, 121, 0.1);
+}
+
+.countdown-number {
+  font-family: "Playfair Display", serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #B76E79;
+}
+
+.countdown-label {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Gallery grid */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.gallery-grid .gallery-item:first-child {
+  grid-column: span 2;
+}
+
+.gallery-item {
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+
+.gallery-item.tall {
+  aspect-ratio: 3/4;
+}
+
+.gallery-item.wide {
+  aspect-ratio: 16/9;
+  grid-column: span 2;
+}
+
+/* Message card */
+.message-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(183, 110, 121, 0.1);
+}
+
+/* Music player button */
+.music-player-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #B76E79, #D4AF37);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 20px rgba(183, 110, 121, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.music-player-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 25px rgba(183, 110, 121, 0.5);
+}
+
+/* Love story timeline */
+.timeline-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, #B76E79, #D4AF37, #B76E79);
+}
+
+.timeline-dot {
+  width: 16px;
+  height: 16px;
+  background: #D4AF37;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 3px #B76E79;
+}
+
+/* RSVP Form */
+.rsvp-form {
+  background: white;
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: 0 10px 40px rgba(183, 110, 121, 0.15);
+  border: 1px solid rgba(183, 110, 121, 0.1);
+}
+
+/* Gift card */
+.gift-card {
+  background: linear-gradient(135deg, #fff 0%, #F5E6E8 100%);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+/* Cover overlay */
+.cover-overlay {
+  background: linear-gradient(
+    to bottom,
+    rgba(250, 250, 249, 0) 0%,
+    rgba(250, 250, 249, 0.3) 50%,
+    rgba(250, 250, 249, 0.9) 85%,
+    rgba(250, 250, 249, 1) 100%
+  );
+}
+
+/* Admin dashboard styles */
+.admin-sidebar {
+  background: white;
+  border-right: 1px solid #E5E5E5;
+}
+
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #4A4A4A;
+  transition: all 0.2s ease;
+}
+
+.admin-nav-item:hover {
+  background: #F5E6E8;
+  color: #B76E79;
+}
+
+.admin-nav-item.active {
+  background: #B76E79;
+  color: white;
+}
+
+/* Stat card */
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #E5E5E5;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: #B76E79;
+  box-shadow: 0 4px 20px rgba(183, 110, 121, 0.1);
 }
