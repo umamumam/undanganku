@@ -1,0 +1,166 @@
+{
+  "project_name": "Eternal Vows - Wedding Invitation Platform",
+  "design_philosophy": {
+    "theme": "Eternal Softness",
+    "emotional_tone": "Romantic, Sacred, Intimate, Joyful",
+    "visual_style": "Minimalist Luxury with Traditional Touch",
+    "anti_patterns": [
+      "No generic Bootstrap grids for the invitation page",
+      "No standard 'SaaS Blue' colors",
+      "No flat digital look - use texture/grain",
+      "No 'Inter' font for headings"
+    ]
+  },
+  "typography": {
+    "font_family_primary": "Playfair Display, serif",
+    "font_family_secondary": "Manrope, sans-serif",
+    "font_family_script": "Pinyon Script, cursive",
+    "scale": {
+      "h1": "text-5xl md:text-7xl font-serif tracking-tight",
+      "h2": "text-3xl md:text-5xl font-serif tracking-tight",
+      "h3": "text-2xl md:text-3xl font-serif",
+      "body": "text-base md:text-lg font-sans leading-relaxed",
+      "script_large": "text-6xl md:text-8xl font-script text-accent",
+      "script_medium": "text-4xl md:text-5xl font-script text-primary"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": "#B76E79",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#F5E6E8",
+      "secondary_foreground": "#4A4A4A",
+      "accent": "#D4AF37",
+      "accent_foreground": "#FFFFFF",
+      "background": "#FAFAF9",
+      "foreground": "#4A4A4A",
+      "muted": "#F0F0F0",
+      "muted_foreground": "#888888",
+      "border": "#E5E5E5",
+      "input": "#F5F5F5",
+      "ring": "#B76E79"
+    },
+    "gradients": {
+      "hero_overlay": "linear-gradient(to bottom, rgba(250,250,249,0) 0%, rgba(250,250,249,1) 100%)",
+      "gold_text": "linear-gradient(45deg, #D4AF37, #FFE180, #D4AF37)"
+    }
+  },
+  "visual_enhancers": {
+    "texture": {
+      "noise_overlay": "fixed inset-0 z-50 pointer-events-none opacity-[0.04] mix-blend-multiply bg-[url('https://grainy-gradients.vercel.app/noise.svg')]",
+      "paper_bg": "bg-[#FAFAF9]"
+    },
+    "shadows": {
+      "soft": "0 10px 40px -10px rgba(183, 110, 121, 0.15)",
+      "card": "0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)"
+    },
+    "borders": {
+      "soft": "border border-[#B76E79]/20"
+    },
+    "radius": {
+      "default": "rounded-xl",
+      "pill": "rounded-full",
+      "card": "rounded-2xl"
+    }
+  },
+  "layout_strategies": {
+    "invitation_page": {
+      "container": "max-w-md mx-auto min-h-screen bg-[#FAFAF9] shadow-2xl relative overflow-hidden",
+      "section_spacing": "py-16 md:py-24",
+      "grid_gallery": "grid grid-cols-2 gap-2 md:gap-4 p-4",
+      "alignment": "text-center for headings, left-align for details"
+    },
+    "admin_dashboard": {
+      "container": "min-h-screen flex bg-gray-50/50",
+      "sidebar": "w-64 hidden md:block border-r bg-white",
+      "content": "flex-1 p-8 overflow-y-auto",
+      "card_grid": "grid grid-cols-1 md:grid-cols-3 gap-6"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-white hover:bg-primary/90 px-8 py-3 rounded-full font-sans tracking-wide transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5",
+      "secondary": "bg-white text-primary border border-primary/20 hover:bg-secondary px-8 py-3 rounded-full font-sans transition-all duration-300",
+      "ghost": "text-primary hover:bg-primary/5 px-4 py-2 rounded-lg"
+    },
+    "cards": {
+      "invitation": "bg-white/80 backdrop-blur-sm border border-white/50 p-8 rounded-2xl shadow-sm",
+      "admin": "bg-white border border-border p-6 rounded-xl shadow-sm"
+    },
+    "inputs": {
+      "default": "bg-transparent border-b border-primary/30 focus:border-primary px-0 py-2 outline-none w-full font-serif text-lg placeholder:text-muted-foreground/50 transition-colors"
+    }
+  },
+  "assets": {
+    "images": {
+      "hero_couple": "https://images.unsplash.com/photo-1769038936061-056e79c8273f?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "floral_decor_1": "https://images.unsplash.com/photo-1679452233251-3bfc55e3ef97?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "floral_decor_2": "https://images.unsplash.com/photo-1632235264696-323467f32c5b?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "placeholders": {
+        "couple_vertical": "https://images.unsplash.com/photo-1528298936130-dace32e4221c?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "gallery_1": "https://images.unsplash.com/photo-1760669348993-54637f59b59e?crop=entropy&cs=srgb&fm=jpg&q=85",
+        "gallery_2": "https://images.unsplash.com/photo-1765266954707-5ebec32c331b?crop=entropy&cs=srgb&fm=jpg&q=85"
+      }
+    },
+    "icons": {
+      "library": "lucide-react",
+      "styles": "stroke-[1.5px] w-5 h-5"
+    }
+  },
+  "motion": {
+    "fade_up": {
+      "initial": { "opacity": 0, "y": 20 },
+      "whileInView": { "opacity": 1, "y": 0 },
+      "viewport": { "once": true },
+      "transition": { "duration": 0.8, "ease": "easeOut" }
+    },
+    "stagger_container": {
+      "hidden": { "opacity": 0 },
+      "show": {
+        "opacity": 1,
+        "transition": {
+          "staggerChildren": 0.1
+        }
+      }
+    }
+  },
+  "specific_instructions": {
+    "invitation_page": [
+      "Use 'Pinyon Script' or 'Great Vibes' for the couple's names in the Hero section.",
+      "Implement a 'Music Player' as a floating circular button (bottom-right) with a vinyl spin animation when playing.",
+      "The 'Countdown' should use a serif font for numbers and small sans-serif for labels (Days, Hours, etc.).",
+      "The 'Gallery' must use a masonry or 'Tetris' layout, avoiding uniform squares.",
+      "The 'RSVP' form should feel like a letter or card, not a generic form.",
+      "Use Indonesian language: 'Kepada Yth.', 'Buka Undangan', 'Akad Nikah', 'Resepsi', 'Turut Mengundang', 'Kirim Ucapan'."
+    ],
+    "admin_dashboard": [
+      "Use Shadcn UI components for all interactive elements (Tables, Forms, Dialogs).",
+      "Sidebar should be clean with icons.",
+      "Dashboard overview should show cards for: Total Tamu, Hadir, Belum Respon, Ucapan Masuk.",
+      "Guest Management table needs columns for: Nama, No. WhatsApp, Status Kehadiran, Jumlah Tamu, Aksi (Edit/Delete).",
+      "Include a 'Copy Link' button for the invitation URL."
+    ]
+  },
+  "tech_stack_adjustments": {
+    "tailwind_config": {
+      "extend_font_family": {
+        "serif": ["Playfair Display", "serif"],
+        "sans": ["Manrope", "sans-serif"],
+        "script": ["Pinyon Script", "cursive"]
+      },
+      "extend_colors": {
+        "primary": "#B76E79",
+        "secondary": "#F5E6E8",
+        "accent": "#D4AF37"
+      }
+    }
+  },
+  "UNIVERSAL_GUIDELINES": [
+    "Do not use generic 'Inter' font for headings.",
+    "Do not use pure black (#000000); use Charcoal (#4A4A4A) or Dark Grey.",
+    "Add 'data-testid' to all interactive elements.",
+    "Ensure 3:1 contrast ratio for large text and 4.5:1 for body text.",
+    "Use 'sonner' for toast notifications.",
+    "Design mobile-first for the invitation page."
+  ]
+}
