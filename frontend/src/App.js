@@ -55,6 +55,7 @@ function App() {
             <Route path="edit/:invitationId" element={<EditInvitation />} />
             <Route path="rsvp/:invitationId" element={<RSVPList />} />
             <Route path="ucapan/:invitationId" element={<MessageList />} />
+            <Route path="tamu/:invitationId" element={<GuestManagementPage />} />
           </Route>
           
           {/* Default redirect */}
