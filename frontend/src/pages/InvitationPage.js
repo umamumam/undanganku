@@ -222,27 +222,40 @@ const InvitationContent = ({ invitation, guestName }) => {
             </h2>
             
             {/* Opening text */}
-            <p className="text-center text-sm mb-8 opacity-80">
+            <p className="text-center text-sm mb-10 opacity-80 max-w-sm mx-auto">
               <strong>Assalamu'alaikum Warahmatullahi Wabarakatuh</strong>
               <br /><br />
               {invitation.opening_text}
             </p>
             
             {/* Groom */}
-            <div className="text-center mb-12">
-              <img 
-                src={invitation.groom.photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"} 
-                alt={invitation.groom.name}
-                className="w-36 h-36 rounded-full object-cover mx-auto frame-photo mb-4"
-              />
+            <div className="text-center mb-10">
+              <div className="relative inline-block mb-4">
+                <div 
+                  className="absolute inset-0 rounded-full animate-spin-slow"
+                  style={{
+                    background: `conic-gradient(from 0deg, ${theme.accentColor}30, transparent, ${theme.primaryColor}30, transparent, ${theme.accentColor}30)`,
+                    transform: 'scale(1.12)'
+                  }}
+                />
+                <img 
+                  src={invitation.groom.photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"} 
+                  alt={invitation.groom.name}
+                  className="w-36 h-36 md:w-40 md:h-40 rounded-full object-cover relative"
+                  style={{
+                    border: `4px solid ${theme.accentColor}`,
+                    boxShadow: `0 0 0 6px ${theme.secondaryColor}, 0 15px 40px ${theme.primaryColor}25`
+                  }}
+                />
+              </div>
               <p 
-                className="font-script text-3xl mb-1"
+                className="font-script text-3xl md:text-4xl mb-1"
                 style={{ color: theme.primaryColor }}
               >
                 {invitation.groom.name}
               </p>
               <h3 
-                className="font-serif text-xl mb-2"
+                className="font-serif text-lg md:text-xl mb-2"
                 style={{ color: theme.primaryColor }}
               >
                 {invitation.groom.full_name}
@@ -256,8 +269,12 @@ const InvitationContent = ({ invitation, guestName }) => {
                   href={`https://instagram.com/${invitation.groom.instagram}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex items-center mt-2 hover:underline text-sm"
-                  style={{ color: theme.primaryColor }}
+                  className="inline-flex items-center mt-3 px-4 py-1.5 rounded-full text-sm transition-colors"
+                  style={{ 
+                    color: theme.primaryColor,
+                    background: `${theme.secondaryColor}80`,
+                    border: `1px solid ${theme.accentColor}20`
+                  }}
                 >
                   <Instagram className="w-4 h-4 mr-1" />
                   @{invitation.groom.instagram}
@@ -265,25 +282,56 @@ const InvitationContent = ({ invitation, guestName }) => {
               )}
             </div>
 
-            <div className="flex justify-center my-8">
-              <Heart className="w-8 h-8" style={{ color: theme.accentColor }} />
+            {/* Heart Divider */}
+            <div className="flex items-center justify-center gap-3 my-6">
+              <div 
+                className="w-16 h-0.5"
+                style={{ background: `linear-gradient(90deg, transparent, ${theme.accentColor})` }}
+              />
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ 
+                  background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                  boxShadow: `0 4px 15px ${theme.primaryColor}30`
+                }}
+              >
+                <Heart className="w-5 h-5 text-white fill-white" />
+              </div>
+              <div 
+                className="w-16 h-0.5"
+                style={{ background: `linear-gradient(270deg, transparent, ${theme.accentColor})` }}
+              />
             </div>
 
             {/* Bride */}
-            <div className="text-center">
-              <img 
-                src={invitation.bride.photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400"} 
-                alt={invitation.bride.name}
-                className="w-36 h-36 rounded-full object-cover mx-auto frame-photo mb-4"
-              />
+            <div className="text-center mt-10">
+              <div className="relative inline-block mb-4">
+                <div 
+                  className="absolute inset-0 rounded-full animate-spin-slow"
+                  style={{
+                    background: `conic-gradient(from 0deg, ${theme.primaryColor}30, transparent, ${theme.accentColor}30, transparent, ${theme.primaryColor}30)`,
+                    transform: 'scale(1.12)',
+                    animationDirection: 'reverse'
+                  }}
+                />
+                <img 
+                  src={invitation.bride.photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400"} 
+                  alt={invitation.bride.name}
+                  className="w-36 h-36 md:w-40 md:h-40 rounded-full object-cover relative"
+                  style={{
+                    border: `4px solid ${theme.accentColor}`,
+                    boxShadow: `0 0 0 6px ${theme.secondaryColor}, 0 15px 40px ${theme.primaryColor}25`
+                  }}
+                />
+              </div>
               <p 
-                className="font-script text-3xl mb-1"
+                className="font-script text-3xl md:text-4xl mb-1"
                 style={{ color: theme.primaryColor }}
               >
                 {invitation.bride.name}
               </p>
               <h3 
-                className="font-serif text-xl mb-2"
+                className="font-serif text-lg md:text-xl mb-2"
                 style={{ color: theme.primaryColor }}
               >
                 {invitation.bride.full_name}
@@ -297,8 +345,12 @@ const InvitationContent = ({ invitation, guestName }) => {
                   href={`https://instagram.com/${invitation.bride.instagram}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex items-center mt-2 hover:underline text-sm"
-                  style={{ color: theme.primaryColor }}
+                  className="inline-flex items-center mt-3 px-4 py-1.5 rounded-full text-sm transition-colors"
+                  style={{ 
+                    color: theme.primaryColor,
+                    background: `${theme.secondaryColor}80`,
+                    border: `1px solid ${theme.accentColor}20`
+                  }}
                 >
                   <Instagram className="w-4 h-4 mr-1" />
                   @{invitation.bride.instagram}
