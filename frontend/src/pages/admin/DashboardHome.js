@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { 
   Plus, Edit, Trash2, Eye, Copy, Users, MessageCircle, 
-  ExternalLink, Heart, Calendar
+  ExternalLink, Heart, Calendar, UserPlus
 } from 'lucide-react';
 import {
   AlertDialog,
