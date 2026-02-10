@@ -12,15 +12,15 @@ export const THEMES = {
     fontHeading: 'Cinzel',
     fontBody: 'Manrope',
     ornaments: {
-      topLeft: 'https://images.unsplash.com/photo-1762111067760-1f0fc2aa2866?w=400',
-      topRight: 'https://images.unsplash.com/photo-1761517099247-71400d18ccd8?w=400',
-      bottom: 'https://images.unsplash.com/photo-1761515315519-7fa1af1d3e06?w=400',
-      divider: 'https://images.unsplash.com/photo-1762111067760-1f0fc2aa2866?w=200'
+      topLeft: '',
+      topRight: '',
+      bottom: '',
+      divider: ''
     },
     backgroundPattern: 'batik',
-    gradientStart: '#FDF5E6',
-    gradientMid: '#F5DEB3',
-    gradientEnd: '#FDF5E6'
+    gradientStart: '#FDF8F0',
+    gradientMid: '#F5E6D3',
+    gradientEnd: '#FDF8F0'
   },
   floral: {
     id: 'floral',
@@ -32,15 +32,15 @@ export const THEMES = {
     fontHeading: 'Playfair Display',
     fontBody: 'Manrope',
     ornaments: {
-      topLeft: 'https://images.unsplash.com/photo-1581720848095-2b72764b08a2?w=400',
-      topRight: 'https://images.unsplash.com/photo-1581720848209-9721f8fa30ff?w=400',
-      bottom: 'https://images.unsplash.com/photo-1762805088436-ffa7b89779a9?w=400',
-      divider: 'https://images.unsplash.com/photo-1581720848095-2b72764b08a2?w=200'
+      topLeft: '',
+      topRight: '',
+      bottom: '',
+      divider: ''
     },
     backgroundPattern: 'floral',
-    gradientStart: '#FAFAF9',
-    gradientMid: '#F5E6E8',
-    gradientEnd: '#FAFAF9'
+    gradientStart: '#FEFCFB',
+    gradientMid: '#F8ECEE',
+    gradientEnd: '#FEFCFB'
   },
   modern: {
     id: 'modern',
@@ -48,7 +48,7 @@ export const THEMES = {
     description: 'Tema modern dengan desain minimalis',
     primaryColor: '#2C3E50',
     secondaryColor: '#ECF0F1',
-    accentColor: '#E74C3C',
+    accentColor: '#C9A962',
     fontHeading: 'Montserrat',
     fontBody: 'Open Sans',
     ornaments: {
@@ -59,7 +59,7 @@ export const THEMES = {
     },
     backgroundPattern: 'none',
     gradientStart: '#FFFFFF',
-    gradientMid: '#ECF0F1',
+    gradientMid: '#F5F7FA',
     gradientEnd: '#FFFFFF'
   }
 };
