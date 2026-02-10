@@ -1,0 +1,127 @@
+/* Floral/Bunga Theme Styles */
+.theme-floral {
+  --primary: #B76E79;
+  --secondary: #F5E6E8;
+  --accent: #D4AF37;
+  --background: linear-gradient(to bottom, #FAFAF9 0%, #F5E6E8 50%, #FAFAF9 100%);
+}
+
+.theme-floral .invitation-container {
+  background: linear-gradient(to bottom, #FAFAF9 0%, #F5E6E8 50%, #FAFAF9 100%);
+  position: relative;
+}
+
+.theme-floral .ornament-top-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 150px;
+  height: 150px;
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.theme-floral .ornament-top-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 150px;
+  height: 150px;
+  opacity: 0.8;
+  pointer-events: none;
+  transform: scaleX(-1);
+  z-index: 10;
+}
+
+.theme-floral .ornament-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+  width: 200px;
+  height: 120px;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.theme-floral .cover-section {
+  background: linear-gradient(180deg, 
+    rgba(250, 250, 249, 0.95) 0%, 
+    rgba(245, 230, 232, 0.9) 50%,
+    rgba(250, 250, 249, 0.95) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-floral .cover-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23B76E79' fill-opacity='0.04'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.6;
+  z-index: 0;
+}
+
+.theme-floral .section-title {
+  font-family: 'Playfair Display', serif;
+  color: #B76E79;
+  position: relative;
+}
+
+.theme-floral .section-title::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+  margin: 12px auto 0;
+}
+
+.theme-floral .countdown-box {
+  background: white;
+  border: 1px solid rgba(183, 110, 121, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(183, 110, 121, 0.1);
+}
+
+.theme-floral .countdown-number {
+  font-family: 'Playfair Display', serif;
+  color: #B76E79;
+}
+
+.theme-floral .card-section {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(183, 110, 121, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 10px 40px rgba(183, 110, 121, 0.1);
+}
+
+.theme-floral .btn-primary {
+  background: linear-gradient(135deg, #B76E79, #D4AF37);
+  color: white;
+  border: none;
+}
+
+.theme-floral .btn-primary:hover {
+  background: linear-gradient(135deg, #C88891, #DAA520);
+}
+
+.theme-floral .frame-photo {
+  border: 4px solid white;
+  box-shadow: 0 8px 25px rgba(183, 110, 121, 0.2);
+}
+
+.theme-floral .divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+}
+
+.theme-floral .floral-corner {
+  background-size: contain;
+  background-repeat: no-repeat;
+}
