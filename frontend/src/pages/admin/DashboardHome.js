@@ -254,6 +254,17 @@ const DashboardHome = () => {
                   <Button
                     variant="outline"
                     size="sm"
+                    onClick={() => navigate(`/admin/tamu/${inv.id}`)}
+                    className="border-green-200 text-green-600 hover:bg-green-500 hover:text-white rounded-lg"
+                    data-testid={`guest-list-${inv.id}`}
+                  >
+                    <UserPlus className="w-4 h-4 mr-1" />
+                    Tamu
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => navigate(`/admin/edit/${inv.id}`)}
                     className="border-accent/30 text-accent hover:bg-accent hover:text-white rounded-lg"
                     data-testid={`edit-${inv.id}`}
