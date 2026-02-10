@@ -26,7 +26,8 @@ import {
   CountdownSection,
   QuoteSection,
   VideoSection,
-  MusicPlayer
+  MusicPlayer,
+  LoveStoryTimeline
 } from '@/components/invitation';
 
 const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
