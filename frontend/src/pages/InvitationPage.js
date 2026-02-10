@@ -23,6 +23,7 @@ import '@/themes/ModernTheme.css';
 import {
   CoverSection,
   HeroSection,
+  CoupleSection,
   CountdownSection,
   QuoteSection,
   VideoSection,
