@@ -7,48 +7,119 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Font imports */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Great+Vibes&display=swap');
+
+/* Custom font class */
+.font-script {
+  font-family: 'Great Vibes', cursive;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif;
+}
+
+.font-arabic {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+}
+
+/* Animation keyframes */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-up {
+  animation: fadeUp 1s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.animate-spin {
+  animation: spin 3s linear infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1.5s infinite;
+}
+
 /* Invitation page specific */
 .invitation-container {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
-  background: linear-gradient(to bottom, #FAFAF9 0%, #F5E6E8 50%, #FAFAF9 100%);
   position: relative;
   overflow-x: hidden;
 }
 
-/* Floral decorations */
-.floral-top-left {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 150px;
-  opacity: 0.6;
-  pointer-events: none;
+/* Invitation section */
+.invitation-section {
+  padding: 48px 24px;
+  position: relative;
 }
 
-.floral-top-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 150px;
-  opacity: 0.6;
-  transform: scaleX(-1);
-  pointer-events: none;
+/* Fade section animation */
+.fade-section {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.8s ease-out;
 }
 
-.floral-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
-  opacity: 0.5;
-  pointer-events: none;
+.fade-section.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* Section divider */
-.section-divider {
+.section-divider, .divider {
   width: 80px;
   height: 2px;
   background: linear-gradient(90deg, transparent, #D4AF37, transparent);
@@ -85,6 +156,7 @@ html {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 8px;
+  padding: 0 16px;
 }
 
 .gallery-grid .gallery-item:first-child {
@@ -115,6 +187,20 @@ html {
   border: 1px solid rgba(183, 110, 121, 0.1);
 }
 
+/* Card section */
+.card-section {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(183, 110, 121, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Frame photo */
+.frame-photo {
+  border: 4px solid white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
 /* Music player button */
 .music-player-btn {
   position: fixed;
@@ -137,6 +223,11 @@ html {
 .music-player-btn:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 25px rgba(183, 110, 121, 0.5);
+}
+
+/* Vinyl spinning effect */
+.vinyl-spinning {
+  animation: spin 3s linear infinite;
 }
 
 /* Love story timeline */
@@ -186,6 +277,75 @@ html {
   );
 }
 
+/* Cover section */
+.cover-section {
+  background: linear-gradient(180deg, 
+    rgba(250, 250, 249, 0.98) 0%, 
+    rgba(245, 230, 232, 0.95) 50%,
+    rgba(250, 250, 249, 0.98) 100%);
+}
+
+/* Ornament positions */
+.ornament-top-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 120px;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.ornament-top-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  opacity: 0.7;
+  pointer-events: none;
+  transform: scaleX(-1);
+  z-index: 10;
+}
+
+.ornament-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: 100px;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Section title */
+.section-title {
+  position: relative;
+  font-weight: 500;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+  margin: 12px auto 0;
+}
+
+/* Invitation title (legacy support) */
+.invitation-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 500;
+  text-align: center;
+  color: #B76E79;
+  margin-bottom: 2rem;
+}
+
 /* Admin dashboard styles */
 .admin-sidebar {
   background: white;
@@ -224,4 +384,36 @@ html {
 .stat-card:hover {
   border-color: #B76E79;
   box-shadow: 0 4px 20px rgba(183, 110, 121, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .countdown-box {
+    padding: 12px 14px;
+    min-width: 60px;
+  }
+  
+  .countdown-number {
+    font-size: 1.5rem;
+  }
+  
+  .invitation-section {
+    padding: 36px 20px;
+  }
+  
+  .ornament-top-left,
+  .ornament-top-right {
+    width: 100px;
+    height: 100px;
+  }
+}
+
+/* Theme-specific btn-primary base */
+.btn-primary {
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
