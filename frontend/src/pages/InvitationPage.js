@@ -383,44 +383,82 @@ const InvitationContent = ({ invitation, guestName }) => {
               Acara Pernikahan
             </h2>
             
-            <div className="space-y-6">
+            <div className="space-y-6 max-w-sm mx-auto">
               {invitation.events?.map((event, index) => (
                 <div 
                   key={index} 
-                  className="card-section p-6"
+                  className="rounded-2xl overflow-hidden"
+                  style={{
+                    background: `linear-gradient(145deg, white 0%, ${theme.secondaryColor}40 100%)`,
+                    border: `1px solid ${theme.accentColor}15`,
+                    boxShadow: `0 8px 30px ${theme.primaryColor}10`
+                  }}
                 >
-                  <h3 
-                    className="font-serif text-xl text-center mb-4"
-                    style={{ color: theme.primaryColor }}
+                  {/* Event Header */}
+                  <div 
+                    className="p-4 text-center"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${theme.primaryColor}10, ${theme.accentColor}10)`,
+                      borderBottom: `1px solid ${theme.accentColor}15`
+                    }}
                   >
-                    {event.name}
-                  </h3>
+                    <h3 
+                      className="font-serif text-xl"
+                      style={{ color: theme.primaryColor }}
+                    >
+                      {event.name}
+                    </h3>
+                  </div>
                   
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 mt-0.5" style={{ color: theme.accentColor }} />
-                      <div>
-                        <p className="font-medium">
-                          {new Date(event.date).toLocaleDateString('id-ID', { 
-                            weekday: 'long', 
-                            day: 'numeric', 
-                            month: 'long', 
-                            year: 'numeric' 
-                          })}
-                        </p>
+                  {/* Date Display */}
+                  <div className="flex justify-center py-4">
+                    <div className="text-center">
+                      <p 
+                        className="text-sm uppercase tracking-widest mb-1"
+                        style={{ color: theme.accentColor }}
+                      >
+                        {new Date(event.date).toLocaleDateString('id-ID', { weekday: 'long' })}
+                      </p>
+                      <p 
+                        className="text-4xl font-bold"
+                        style={{ 
+                          color: theme.primaryColor,
+                          fontFamily: theme.fontHeading
+                        }}
+                      >
+                        {new Date(event.date).getDate()}
+                      </p>
+                      <p 
+                        className="text-sm"
+                        style={{ color: theme.primaryColor }}
+                      >
+                        {new Date(event.date).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Event Details */}
+                  <div className="px-5 pb-5 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: `${theme.accentColor}15` }}
+                      >
+                        <Clock className="w-4 h-4" style={{ color: theme.accentColor }} />
                       </div>
+                      <p className="text-sm">{event.time_start} - {event.time_end} WIB</p>
                     </div>
                     
                     <div className="flex items-start gap-3">
-                      <Clock className="w-5 h-5 mt-0.5" style={{ color: theme.accentColor }} />
-                      <p>{event.time_start} - {event.time_end} WIB</p>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 mt-0.5" style={{ color: theme.accentColor }} />
+                      <div 
+                        className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ background: `${theme.accentColor}15` }}
+                      >
+                        <MapPin className="w-4 h-4" style={{ color: theme.accentColor }} />
+                      </div>
                       <div>
-                        <p className="font-medium">{event.venue_name}</p>
-                        <p className="text-sm text-muted-foreground">{event.address}</p>
+                        <p className="text-sm font-medium">{event.venue_name}</p>
+                        <p className="text-xs text-muted-foreground">{event.address}</p>
                       </div>
                     </div>
                   </div>
@@ -430,21 +468,21 @@ const InvitationContent = ({ invitation, guestName }) => {
                       href={event.maps_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-4 inline-flex items-center justify-center w-full py-3 rounded-xl transition-colors"
+                      className="flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors"
                       style={{ 
-                        backgroundColor: theme.secondaryColor, 
-                        color: theme.primaryColor 
+                        background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                        color: 'white'
                       }}
                       data-testid={`maps-btn-${index}`}
                     >
-                      <MapPin className="w-4 h-4 mr-2" />
+                      <MapPin className="w-4 h-4" />
                       Buka di Google Maps
-                      <ExternalLink className="w-4 h-4 ml-2" />
+                      <ExternalLink className="w-4 h-4" />
                     </a>
                   )}
                   
                   {event.maps_embed && (
-                    <div className="mt-4 rounded-xl overflow-hidden h-48">
+                    <div className="h-40 overflow-hidden">
                       <iframe
                         src={event.maps_embed}
                         width="100%"
