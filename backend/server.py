@@ -259,6 +259,20 @@ class RSVPResponse(BaseModel):
     guest_count: int
     created_at: str
 
+# Guest Model for guest list management
+class GuestCreate(BaseModel):
+    name: str
+
+class GuestUpdate(BaseModel):
+    name: str
+
+class GuestResponse(BaseModel):
+    id: str
+    invitation_id: str
+    name: str
+    rsvp_status: Optional[str] = None
+    created_at: str
+
 # Message/Ucapan Model
 class MessageCreate(BaseModel):
     guest_name: str
