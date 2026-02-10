@@ -77,9 +77,8 @@ const GuestManagementPage = () => {
     if (!window.confirm('Yakin ingin menghapus tamu ini?')) return;
 
     try {
-      const token = localStorage.getItem('token');
       await axios.delete(`${API_URL}/invitations/${invitationId}/guests/${guestId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: getAuthHeaders()
       });
       
       setGuests(guests.filter(g => g.id !== guestId));
@@ -97,11 +96,10 @@ const GuestManagementPage = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
       await axios.put(
         `${API_URL}/invitations/${invitationId}/guests/${guestId}`,
         { name: editName.trim() },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       
       setGuests(guests.map(g => g.id === guestId ? { ...g, name: editName.trim() } : g));
