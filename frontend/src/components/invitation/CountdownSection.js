@@ -51,38 +51,63 @@ const CountdownSection = ({ countdown, onAddToCalendar }) => {
         Menuju Hari Bahagia
       </h2>
       
-      {/* Countdown boxes */}
-      <div className="flex justify-center gap-3 md:gap-4">
-        {countdownItems.map((item, index) => (
-          <div 
-            key={index} 
-            className={`countdown-box text-center px-3 md:px-5 py-4 min-w-[65px] md:min-w-[80px] transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-            style={{
-              transitionDelay: `${200 + index * 100}ms`,
-              background: `linear-gradient(145deg, white 0%, ${theme.secondaryColor}50 100%)`,
-              border: `1px solid ${theme.accentColor}20`,
-              borderRadius: '16px',
-              boxShadow: `0 8px 25px ${theme.primaryColor}10`
-            }}
+      {/* Event passed message or Countdown boxes */}
+      {isEventPassed ? (
+        <div 
+          className={`py-6 px-8 mx-auto max-w-xs rounded-2xl transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+          style={{
+            background: `linear-gradient(145deg, white 0%, ${theme.secondaryColor}50 100%)`,
+            border: `1px solid ${theme.accentColor}20`,
+            boxShadow: `0 8px 25px ${theme.primaryColor}10`
+          }}
+        >
+          <Heart className="w-8 h-8 mx-auto mb-3" style={{ color: theme.primaryColor }} />
+          <p 
+            className="text-base font-serif"
+            style={{ color: theme.primaryColor }}
           >
-            <div 
-              className="countdown-number text-2xl md:text-4xl font-bold tabular-nums"
-              style={{ 
-                color: theme.primaryColor,
-                fontFamily: theme.fontHeading
-              }}
-            >
-              {String(item.value).padStart(2, '0')}
-            </div>
-            <div 
-              className="countdown-label text-xs uppercase tracking-wider mt-1"
-              style={{ color: theme.primaryColor, opacity: 0.6 }}
-            >
-              {item.label}
-            </div>
+            Acara Telah Berlangsung
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Terima kasih atas doa dan ucapannya
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Countdown boxes */}
+          <div className="flex justify-center gap-3 md:gap-4">
+            {countdownItems.map((item, index) => (
+              <div 
+                key={index} 
+                className={`countdown-box text-center px-3 md:px-5 py-4 min-w-[65px] md:min-w-[80px] transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                style={{
+                  transitionDelay: `${200 + index * 100}ms`,
+                  background: `linear-gradient(145deg, white 0%, ${theme.secondaryColor}50 100%)`,
+                  border: `1px solid ${theme.accentColor}20`,
+                  borderRadius: '16px',
+                  boxShadow: `0 8px 25px ${theme.primaryColor}10`
+                }}
+              >
+                <div 
+                  className="countdown-number text-2xl md:text-4xl font-bold tabular-nums"
+                  style={{ 
+                    color: theme.primaryColor,
+                    fontFamily: theme.fontHeading
+                  }}
+                >
+                  {String(item.value).padStart(2, '0')}
+                </div>
+                <div 
+                  className="countdown-label text-xs uppercase tracking-wider mt-1"
+                  style={{ color: theme.primaryColor, opacity: 0.6 }}
+                >
+                  {item.label}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
       
       {/* Save to calendar button */}
       <div className={`mt-8 transition-all duration-700 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
