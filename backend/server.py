@@ -25,14 +25,15 @@ MUSIC_DIR = UPLOAD_DIR / "music"
 MUSIC_DIR.mkdir(exist_ok=True)
 
 # MongoDB connection
+import certifi
 mongo_url = os.environ['MONGO_URL']
-# Add SSL/TLS options for MongoDB Atlas
+# Add SSL/TLS options for MongoDB Atlas with certifi
 client = AsyncIOMotorClient(
     mongo_url,
     tls=True,
-    tlsAllowInvalidCertificates=True,
-    serverSelectionTimeoutMS=10000,
-    connectTimeoutMS=10000
+    tlsCAFile=certifi.where(),
+    serverSelectionTimeoutMS=30000,
+    connectTimeoutMS=30000
 )
 db = client[os.environ.get('DB_NAME', 'undanganku')]
 
