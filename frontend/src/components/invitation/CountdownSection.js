@@ -109,22 +109,24 @@ const CountdownSection = ({ countdown, onAddToCalendar }) => {
         </>
       )}
       
-      {/* Save to calendar button */}
-      <div className={`mt-8 transition-all duration-700 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-        <Button
-          onClick={onAddToCalendar}
-          className="rounded-full px-6 py-5 text-sm"
-          style={{ 
-            background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-            color: 'white',
-            boxShadow: `0 4px 15px ${theme.primaryColor}30`
-          }}
-          data-testid="save-calendar-btn"
-        >
-          <Calendar className="w-4 h-4 mr-2" />
-          Simpan Tanggal
-        </Button>
-      </div>
+      {/* Save to calendar button - only show if event not passed */}
+      {!isEventPassed && (
+        <div className={`mt-8 transition-all duration-700 delay-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <Button
+            onClick={onAddToCalendar}
+            className="rounded-full px-6 py-5 text-sm"
+            style={{ 
+              background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+              color: 'white',
+              boxShadow: `0 4px 15px ${theme.primaryColor}30`
+            }}
+            data-testid="save-calendar-btn"
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Simpan Tanggal
+          </Button>
+        </div>
+      )}
     </section>
   );
 };
