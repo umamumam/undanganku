@@ -1,6 +1,7 @@
 // Export all invitation components
 export { default as CoverSection } from './CoverSection';
 export { default as HeroSection } from './HeroSection';
+export { default as CoupleSection } from './CoupleSection';
 export { default as CountdownSection } from './CountdownSection';
 export { default as QuoteSection } from './QuoteSection';
 export { default as VideoSection } from './VideoSection';
