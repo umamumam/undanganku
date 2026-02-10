@@ -14,65 +14,103 @@ const HeroSection = ({ invitation }) => {
     invitation.groom?.photo || 
     'https://images.unsplash.com/photo-1519741497674-611481863552?w=800';
 
+  const groomName = invitation.groom?.name || 'Groom';
+  const brideName = invitation.bride?.name || 'Bride';
+
   return (
     <section 
-      className="min-h-screen flex flex-col items-center justify-center relative py-16 px-6"
+      className="min-h-screen flex flex-col items-center justify-center relative py-16 px-6 overflow-hidden"
       style={{
         background: `linear-gradient(180deg, ${theme.gradientStart} 0%, ${theme.gradientMid} 50%, ${theme.gradientEnd} 100%)`
       }}
     >
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-20" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='${encodeURIComponent(theme.primaryColor)}' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        backgroundSize: '60px 60px'
-      }} />
-      
-      {/* Corner Ornaments */}
-      <div 
-        className={`absolute top-0 left-0 w-24 h-24 md:w-32 md:h-32 transition-all duration-1000 ${isVisible ? 'opacity-50' : 'opacity-0'}`}
-        style={{
-          background: `radial-gradient(circle at 0% 0%, ${theme.accentColor}30 0%, transparent 70%)`
-        }}
-      />
-      <div 
-        className={`absolute top-0 right-0 w-24 h-24 md:w-32 md:h-32 transition-all duration-1000 ${isVisible ? 'opacity-50' : 'opacity-0'}`}
-        style={{
-          background: `radial-gradient(circle at 100% 0%, ${theme.accentColor}30 0%, transparent 70%)`
-        }}
-      />
-      
-      {/* Hero Photo */}
-      <div className={`relative mb-10 transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-        {/* Decorative ring */}
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Top left floral decoration */}
+        <div className="absolute top-0 left-0 w-32 h-48 opacity-40">
+          <svg viewBox="0 0 100 150" className="w-full h-full">
+            <defs>
+              <linearGradient id="floralGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={theme.primaryColor} stopOpacity="0.6"/>
+                <stop offset="100%" stopColor={theme.accentColor} stopOpacity="0.3"/>
+              </linearGradient>
+            </defs>
+            {/* Leaves */}
+            <ellipse cx="20" cy="30" rx="15" ry="25" fill="url(#floralGrad1)" transform="rotate(-30 20 30)"/>
+            <ellipse cx="35" cy="50" rx="12" ry="20" fill="url(#floralGrad1)" transform="rotate(-15 35 50)"/>
+            <ellipse cx="15" cy="70" rx="10" ry="18" fill="url(#floralGrad1)" transform="rotate(-45 15 70)"/>
+            {/* Small flowers */}
+            <circle cx="30" cy="20" r="5" fill={theme.accentColor} opacity="0.5"/>
+            <circle cx="45" cy="40" r="4" fill={theme.primaryColor} opacity="0.4"/>
+          </svg>
+        </div>
+        
+        {/* Top right floral decoration */}
+        <div className="absolute top-0 right-0 w-32 h-48 opacity-40 scale-x-[-1]">
+          <svg viewBox="0 0 100 150" className="w-full h-full">
+            <defs>
+              <linearGradient id="floralGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={theme.primaryColor} stopOpacity="0.6"/>
+                <stop offset="100%" stopColor={theme.accentColor} stopOpacity="0.3"/>
+              </linearGradient>
+            </defs>
+            <ellipse cx="20" cy="30" rx="15" ry="25" fill="url(#floralGrad2)" transform="rotate(-30 20 30)"/>
+            <ellipse cx="35" cy="50" rx="12" ry="20" fill="url(#floralGrad2)" transform="rotate(-15 35 50)"/>
+            <ellipse cx="15" cy="70" rx="10" ry="18" fill="url(#floralGrad2)" transform="rotate(-45 15 70)"/>
+            <circle cx="30" cy="20" r="5" fill={theme.accentColor} opacity="0.5"/>
+            <circle cx="45" cy="40" r="4" fill={theme.primaryColor} opacity="0.4"/>
+          </svg>
+        </div>
+        
+        {/* Decorative circles */}
         <div 
-          className="absolute inset-0 w-56 h-56 md:w-72 md:h-72 mx-auto rounded-full animate-spin-slow"
+          className="absolute top-20 right-8 w-16 h-16 rounded-full opacity-20"
+          style={{ backgroundColor: theme.accentColor }}
+        />
+        <div 
+          className="absolute bottom-32 left-6 w-10 h-10 rounded-full opacity-15"
+          style={{ backgroundColor: theme.accentColor }}
+        />
+      </div>
+      
+      {/* Hero Photo with Frame */}
+      <div className={`relative mb-10 transition-all duration-1000 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
+        {/* Outer decorative ring */}
+        <div 
+          className="absolute inset-0 w-52 h-52 md:w-64 md:h-64 mx-auto rounded-full"
           style={{
-            background: `conic-gradient(from 0deg, ${theme.accentColor}30, transparent, ${theme.primaryColor}30, transparent, ${theme.accentColor}30)`,
-            transform: 'scale(1.1)'
+            background: `conic-gradient(from 0deg, ${theme.accentColor}40, transparent, ${theme.primaryColor}30, transparent, ${theme.accentColor}40)`,
+            transform: 'scale(1.12)',
+            animation: 'spin-slow 25s linear infinite'
           }}
         />
         
-        {/* Photo frame */}
+        {/* Gold frame */}
         <div 
-          className="relative w-56 h-56 md:w-72 md:h-72 mx-auto rounded-full overflow-hidden"
+          className="relative w-52 h-52 md:w-64 md:h-64 mx-auto rounded-full p-1"
           style={{
-            border: `5px solid ${theme.accentColor}`,
-            boxShadow: `0 0 0 10px ${theme.secondaryColor}, 0 25px 60px ${theme.primaryColor}30`
+            background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.accentColor}80, ${theme.accentColor})`,
+            boxShadow: `0 0 40px ${theme.accentColor}25`
           }}
         >
-          <img 
-            src={heroPhoto} 
-            alt="Couple" 
-            className="w-full h-full object-cover"
-          />
+          <div 
+            className="w-full h-full rounded-full p-1"
+            style={{ backgroundColor: 'white' }}
+          >
+            <img 
+              src={heroPhoto} 
+              alt="Couple" 
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
         </div>
         
         {/* Heart badge */}
         <div 
           className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center"
           style={{
-            background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-            boxShadow: `0 4px 15px ${theme.primaryColor}50`
+            background: `linear-gradient(135deg, ${theme.accentColor}, ${theme.primaryColor})`,
+            boxShadow: `0 4px 15px ${theme.accentColor}50`
           }}
         >
           <Heart className="w-5 h-5 text-white fill-white" />
@@ -80,40 +118,42 @@ const HeroSection = ({ invitation }) => {
       </div>
       
       {/* Text Content */}
-      <div className="text-center">
-        {/* Pernikahan text */}
+      <div className="text-center relative z-10">
+        {/* Pernikahan label */}
         <p 
-          className={`text-xs uppercase tracking-[0.4em] mb-4 transition-all duration-700 delay-300 ${isVisible ? 'opacity-60' : 'opacity-0'}`}
+          className={`text-xs uppercase tracking-[0.3em] mb-4 transition-all duration-700 delay-300 ${isVisible ? 'opacity-60' : 'opacity-0'}`}
           style={{ color: theme.primaryColor }}
         >
           Pernikahan
         </p>
         
-        {/* Names */}
-        <h1 
-          className={`font-script text-5xl md:text-6xl lg:text-7xl transition-all duration-700 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-          style={{ color: theme.primaryColor }}
-        >
-          {invitation.groom?.name}
-        </h1>
-        
-        <p 
-          className={`font-script text-3xl md:text-4xl my-3 transition-all duration-700 delay-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}
-          style={{ color: theme.accentColor }}
-        >
-          &
-        </p>
-        
-        <h1 
-          className={`font-script text-5xl md:text-6xl lg:text-7xl transition-all duration-700 delay-600 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}
-          style={{ color: theme.primaryColor }}
-        >
-          {invitation.bride?.name}
-        </h1>
+        {/* Names - Horizontal */}
+        <div className={`flex items-center justify-center gap-3 md:gap-4 mb-4 transition-all duration-700 delay-400 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
+          <h1 
+            className="font-script text-4xl md:text-5xl lg:text-6xl"
+            style={{ color: theme.primaryColor }}
+          >
+            {groomName}
+          </h1>
+          
+          <span 
+            className="font-script text-3xl md:text-4xl"
+            style={{ color: theme.accentColor }}
+          >
+            &
+          </span>
+          
+          <h1 
+            className="font-script text-4xl md:text-5xl lg:text-6xl"
+            style={{ color: theme.primaryColor }}
+          >
+            {brideName}
+          </h1>
+        </div>
         
         {/* Divider */}
         <div 
-          className={`w-20 h-0.5 mx-auto my-8 transition-all duration-700 delay-700 ${isVisible ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`}
+          className={`w-20 h-0.5 mx-auto mb-4 transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 scale-x-100' : 'opacity-0 scale-x-0'}`}
           style={{
             background: `linear-gradient(90deg, transparent, ${theme.accentColor}, transparent)`
           }}
@@ -122,7 +162,7 @@ const HeroSection = ({ invitation }) => {
         {/* Date */}
         {invitation.events?.[0] && (
           <p 
-            className={`text-base font-serif transition-all duration-700 delay-800 ${isVisible ? 'opacity-70' : 'opacity-0'}`}
+            className={`text-sm md:text-base transition-all duration-700 delay-600 ${isVisible ? 'opacity-60' : 'opacity-0'}`}
             style={{ color: theme.primaryColor }}
           >
             {new Date(invitation.events[0].date).toLocaleDateString('id-ID', { 
@@ -134,6 +174,13 @@ const HeroSection = ({ invitation }) => {
           </p>
         )}
       </div>
+      
+      <style>{`
+        @keyframes spin-slow {
+          from { transform: rotate(0deg) scale(1.12); }
+          to { transform: rotate(360deg) scale(1.12); }
+        }
+      `}</style>
     </section>
   );
 };
