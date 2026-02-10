@@ -26,17 +26,20 @@ MUSIC_DIR.mkdir(exist_ok=True)
 
 # MongoDB connection
 import certifi
-mongo_url = os.environ['MONGO_URL']
+import ssl
+
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017/undanganku')
 
 # Check if it's MongoDB Atlas or local
 if 'mongodb+srv' in mongo_url or 'mongodb.net' in mongo_url:
     # MongoDB Atlas - use SSL with certifi
     client = AsyncIOMotorClient(
         mongo_url,
-        tls=True,
         tlsCAFile=certifi.where(),
         serverSelectionTimeoutMS=30000,
-        connectTimeoutMS=30000
+        connectTimeoutMS=30000,
+        retryWrites=True,
+        w='majority'
     )
 else:
     # Local MongoDB - no SSL needed
