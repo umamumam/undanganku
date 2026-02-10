@@ -4,21 +4,13 @@
 Aplikasi undangan pernikahan digital dengan fitur:
 1. **Multiple Themes**: Pengguna dapat memilih dari berbagai tema visual (Floral, Adat/Traditional, Modern)
 2. **Improved Cover/Opening**: Halaman pembuka yang lebih menarik dengan foto dan ornamen dekoratif
-3. **Flexible Media**: 
-   - Video: Embed YouTube video
-   - Music: Playlist musik dari MP3 atau YouTube
-4. **Timeline Love Story**: Animasi timeline dengan dots dan garis penghubung yang bergerak saat scroll
+3. **Flexible Media**: Video YouTube embed, playlist musik
+4. **Timeline Love Story**: Animasi timeline dengan dots dan garis penghubung
+5. **Guest Management**: Dashboard untuk mengelola daftar tamu dan generate link personal
 
 ## User Personas
 - Calon pengantin yang ingin membuat undangan pernikahan digital
-- Admin yang mengelola data undangan, RSVP, dan ucapan
-
-## Core Requirements
-1. Sistem autentikasi (register/login)
-2. Dashboard admin untuk kelola undangan
-3. Halaman undangan publik dengan berbagai fitur
-4. RSVP dan sistem ucapan
-5. Multiple themes dengan visual yang berbeda
+- Admin yang mengelola data undangan, RSVP, tamu, dan ucapan
 
 ## Technology Stack
 - **Frontend**: React.js, TailwindCSS, Shadcn/UI
@@ -29,24 +21,26 @@ Aplikasi undangan pernikahan digital dengan fitur:
 ```
 /app
 ├── backend/
-│   └── server.py          # FastAPI server with all endpoints
+│   └── server.py              # FastAPI server with all endpoints
 └── frontend/
     ├── src/
     │   ├── components/
     │   │   ├── invitation/    # Invitation components
-    │   │   │   ├── CoverSection.js
-    │   │   │   ├── HeroSection.js
-    │   │   │   ├── LoveStoryTimeline.js
+    │   │   │   ├── CoverSection.js      # Cover with horizontal names, gold frame
+    │   │   │   ├── HeroSection.js       # Hero with photo animation
+    │   │   │   ├── CoupleSection.js     # NEW: Couple with floral frames
+    │   │   │   ├── LoveStoryTimeline.js # Timeline with animated dots
     │   │   │   ├── CountdownSection.js
     │   │   │   ├── QuoteSection.js
-    │   │   │   ├── VideoSection.js
-    │   │   │   └── MusicPlayer.js
-    │   │   └── ui/           # Shadcn components
+    │   │   │   └── ...
+    │   │   └── ui/            # Shadcn components
     │   ├── pages/
     │   │   ├── InvitationPage.js
     │   │   ├── LoginPage.js
-    │   │   ├── RegisterPage.js
     │   │   └── admin/
+    │   │       ├── DashboardHome.js
+    │   │       ├── GuestManagementPage.js  # NEW: Guest management
+    │   │       └── ...
     │   └── themes/
     │       ├── ThemeProvider.js
     │       ├── FloralTheme.css
@@ -56,62 +50,70 @@ Aplikasi undangan pernikahan digital dengan fitur:
 
 ## What's Been Implemented
 
-### December 10, 2025
-- ✅ Redesigned **Cover Section** with full background, corner ornaments, floating particles
-- ✅ Improved **Hero Section** with rotating ring animation around photo
-- ✅ Enhanced **Couple Section** with animated photo frames
-- ✅ Modernized **Events Section** with prominent date display
-- ✅ Created **Love Story Timeline** with animated dots and connecting line that grows on scroll
-- ✅ Improved **Countdown Section** with animated boxes and "Event Passed" message
-- ✅ Updated **Quote Section** with decorative quotes
-- ✅ Three themes: Floral (pink/rose), Adat (brown/gold), Modern (navy/gold)
-- ✅ Full background without cuts across all sections
-- ✅ Mobile responsive design
+### February 10, 2026
+- ✅ **Cover Section Redesign** (based on user reference):
+  - Photo frame with gold border (centered, not too high)
+  - Names displayed **horizontally** (Ahmad & Siti)
+  - Decorative circles and curved lines in background
+  - "The Wedding Of" text styled but readable
+  
+- ✅ **Couple Section with Floral Frames**:
+  - Photo frames with SVG floral decorations
+  - Background card with opacity for section separation
+  - Side floral decorations
+
+- ✅ **Guest Management Dashboard** (NEW):
+  - `/admin/tamu/:invitationId` route
+  - Add/Edit/Delete guests
+  - Copy individual or all invitation links
+  - RSVP status tracking (Hadir/Tidak Hadir/Pending)
+  - Search functionality
+  - Statistics cards
+
+- ✅ Backend API for guests:
+  - `GET /api/invitations/:id/guests`
+  - `POST /api/invitations/:id/guests`
+  - `PUT /api/invitations/:id/guests/:guestId`
+  - `DELETE /api/invitations/:id/guests/:guestId`
 
 ### Previous Implementation
+- Love Story Timeline with animated dots and connecting line
+- Multiple themes (Floral, Adat, Modern)
 - User authentication (register/login with JWT)
 - Dashboard admin with statistics
-- Create/Edit/Delete invitations
-- RSVP system
-- Message/Ucapan system with replies
+- RSVP and message systems
 - Gift section with bank accounts
-- Video section (YouTube embed)
-- Music player with playlist support
+- Video and music player support
 
 ## API Endpoints
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login
-- `GET /api/auth/me` - Get current user
-- `GET /api/themes` - Get available themes
-- `POST /api/invitations` - Create invitation
-- `GET /api/invitations` - Get user's invitations
-- `PUT /api/invitations/:id` - Update invitation
-- `DELETE /api/invitations/:id` - Delete invitation
-- `GET /api/public/invitation/:id` - Get public invitation
-- `POST /api/public/rsvp/:id` - Submit RSVP
-- `POST /api/public/messages/:id` - Submit message
-- `GET /api/public/messages/:id` - Get messages
+### Authentication
+- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+
+### Invitations
+- `GET/POST /api/invitations`, `GET/PUT/DELETE /api/invitations/:id`
+- `GET /api/public/invitation/:id`
+
+### Guests (NEW)
+- `GET /api/invitations/:id/guests` - List all guests
+- `POST /api/invitations/:id/guests` - Add guest
+- `PUT /api/invitations/:id/guests/:guestId` - Update guest
+- `DELETE /api/invitations/:id/guests/:guestId` - Delete guest
+
+### RSVP & Messages
+- `POST /api/public/rsvp/:id`, `POST /api/public/messages/:id`
+- `GET /api/invitations/:id/rsvps`, `GET /api/invitations/:id/messages`
 
 ## Database Schema
-**invitations**: 
+**guests** (NEW):
 ```
 {
   id: String,
-  user_id: String,
-  theme: "floral" | "adat" | "modern",
-  groom: CoupleInfo,
-  bride: CoupleInfo,
-  events: EventInfo[],
-  love_story: LoveStoryItem[],
-  gallery: GalleryItem[],
-  gifts: GiftAccount[],
-  settings: InvitationSettings
+  invitation_id: String,
+  name: String,
+  rsvp_status: String | null,
+  created_at: String
 }
 ```
-
-## Known Issues
-1. MongoDB Atlas connection requires IP whitelist (currently using local MongoDB)
-2. ESLint warnings for missing useEffect dependencies (non-critical)
 
 ## Prioritized Backlog
 
@@ -119,16 +121,23 @@ Aplikasi undangan pernikahan digital dengan fitur:
 - None currently
 
 ### P1 (High Priority)
-- MongoDB Atlas connection fix (requires user to whitelist IP 0.0.0.0/0)
-- Admin dashboard UI modernization
+- Bird flying / particle animation effects
+- Custom template builder (drag & drop)
 
 ### P2 (Medium Priority)
-- MP3 file upload system for music
+- MongoDB Atlas connection fix (requires user IP whitelist)
+- Import guests from Excel/CSV
 - More theme variations
-- Gallery lightbox feature
-- Image upload for photos (currently using URLs)
 
 ### P3 (Low Priority)
+- Admin dashboard UI modernization
+- MP3 file upload system
+- Gallery lightbox feature
+- Image upload (currently using URLs)
 - Email/WhatsApp sharing integration
-- QR code generator for invitation link
-- Analytics dashboard
+- QR code generator
+
+## Test Credentials
+- Email: newuser123@example.com
+- Password: Test123456
+- Test invitation ID: b8a65192-d96d-4369-bfbd-a35bdca93bc5
