@@ -27,14 +27,25 @@ MUSIC_DIR.mkdir(exist_ok=True)
 # MongoDB connection
 import certifi
 mongo_url = os.environ['MONGO_URL']
-# Add SSL/TLS options for MongoDB Atlas with certifi
-client = AsyncIOMotorClient(
-    mongo_url,
-    tls=True,
-    tlsCAFile=certifi.where(),
-    serverSelectionTimeoutMS=30000,
-    connectTimeoutMS=30000
-)
+
+# Check if it's MongoDB Atlas or local
+if 'mongodb+srv' in mongo_url or 'mongodb.net' in mongo_url:
+    # MongoDB Atlas - use SSL with certifi
+    client = AsyncIOMotorClient(
+        mongo_url,
+        tls=True,
+        tlsCAFile=certifi.where(),
+        serverSelectionTimeoutMS=30000,
+        connectTimeoutMS=30000
+    )
+else:
+    # Local MongoDB - no SSL needed
+    client = AsyncIOMotorClient(
+        mongo_url,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000
+    )
+
 db = client[os.environ.get('DB_NAME', 'undanganku')]
 
 # JWT Settings
