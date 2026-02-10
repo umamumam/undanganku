@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { 
   ArrowLeft, Plus, Trash2, Copy, Users, Link2, 
-  Search, Download, Upload, CheckCircle, XCircle,
-  Edit2, Save, X
+  Search, Edit2, Save, X
 } from 'lucide-react';
 
 const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -16,6 +15,7 @@ const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const GuestManagementPage = () => {
   const { invitationId } = useParams();
   const navigate = useNavigate();
+  const { getAuthHeaders } = useAuth();
   const [invitation, setInvitation] = useState(null);
   const [guests, setGuests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,17 +30,17 @@ const GuestManagementPage = () => {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const headers = getAuthHeaders();
       
       // Fetch invitation details
       const invResponse = await axios.get(`${API_URL}/invitations/${invitationId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       });
       setInvitation(invResponse.data);
       
       // Fetch guests
       const guestsResponse = await axios.get(`${API_URL}/invitations/${invitationId}/guests`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers
       });
       setGuests(guestsResponse.data || []);
     } catch (error) {
@@ -58,11 +58,10 @@ const GuestManagementPage = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
       const response = await axios.post(
         `${API_URL}/invitations/${invitationId}/guests`,
         { name: newGuestName.trim() },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: getAuthHeaders() }
       );
       
       setGuests([...guests, response.data]);
