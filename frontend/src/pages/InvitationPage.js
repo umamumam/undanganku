@@ -408,45 +408,12 @@ const InvitationContent = ({ invitation, guestName }) => {
           {invitation.love_story?.length > 0 && (
             <section 
               ref={(el) => addSectionRef(el, 5)} 
-              className="fade-section invitation-section py-12"
-              style={{ backgroundColor: `${theme.secondaryColor}40` }}
+              className="fade-section py-12"
+              style={{ 
+                background: `linear-gradient(180deg, ${theme.gradientStart} 0%, ${theme.gradientMid} 50%, ${theme.gradientEnd} 100%)`
+              }}
             >
-              <h2 
-                className="section-title text-2xl text-center mb-8"
-                style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
-              >
-                Love Story
-              </h2>
-              
-              <div className="space-y-8 px-4">
-                {invitation.love_story.map((story, index) => (
-                  <div 
-                    key={story.id} 
-                    className="card-section p-6"
-                  >
-                    {story.image && (
-                      <img 
-                        src={story.image} 
-                        alt={story.title}
-                        className="w-full h-48 object-cover rounded-xl mb-4"
-                      />
-                    )}
-                    <p 
-                      className="text-sm font-medium mb-2"
-                      style={{ color: theme.accentColor }}
-                    >
-                      {story.date}
-                    </p>
-                    <h4 
-                      className="font-serif text-lg mb-2"
-                      style={{ color: theme.primaryColor }}
-                    >
-                      {story.title}
-                    </h4>
-                    <p className="text-sm text-muted-foreground">{story.description}</p>
-                  </div>
-                ))}
-              </div>
+              <LoveStoryTimeline stories={invitation.love_story} />
             </section>
           )}
 
