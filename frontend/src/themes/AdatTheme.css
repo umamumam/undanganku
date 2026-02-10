@@ -3,78 +3,20 @@
   --primary: #8B4513;
   --secondary: #F5DEB3;
   --accent: #D4AF37;
-  --background: linear-gradient(to bottom, #FDF5E6 0%, #F5DEB3 50%, #FDF5E6 100%);
 }
 
 .theme-adat .invitation-container {
-  background: linear-gradient(to bottom, #FDF5E6 0%, #F5DEB3 50%, #FDF5E6 100%);
   position: relative;
+  min-height: 100vh;
 }
 
-.theme-adat .ornament-top-left {
+/* Batik pattern overlay */
+.theme-adat .pattern-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 120px;
-  height: 120px;
-  opacity: 0.7;
+  inset: 0;
+  opacity: 0.08;
   pointer-events: none;
-  background-size: cover;
-  background-position: center;
-  z-index: 10;
-}
-
-.theme-adat .ornament-top-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 120px;
-  height: 120px;
-  opacity: 0.7;
-  pointer-events: none;
-  background-size: cover;
-  background-position: center;
-  transform: scaleX(-1);
-  z-index: 10;
-}
-
-.theme-adat .ornament-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 180px;
-  height: 100px;
-  opacity: 0.6;
-  pointer-events: none;
-  background-size: cover;
-  background-position: center;
-  z-index: 10;
-}
-
-.theme-adat .cover-section {
-  background: linear-gradient(180deg, 
-    rgba(253, 245, 230, 0.95) 0%, 
-    rgba(245, 222, 179, 0.9) 50%,
-    rgba(253, 245, 230, 0.95) 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.theme-adat .cover-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238B4513' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  opacity: 0.5;
-  z-index: 0;
-}
-
-.theme-adat .batik-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%238B4513' fill-opacity='0.08'%3E%3Cpath d='M0 0h80v80H0V0zm20 20v40h40V20H20zm20 35a15 15 0 1 1 0-30 15 15 0 0 1 0 30z'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%238B4513' fill-opacity='0.5'%3E%3Cpath d='M0 0h80v80H0V0zm20 20v40h40V20H20zm20 35a15 15 0 1 1 0-30 15 15 0 0 1 0 30z'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 .theme-adat .section-title {
@@ -93,10 +35,10 @@
 }
 
 .theme-adat .countdown-box {
-  background: linear-gradient(135deg, #FDF5E6 0%, #F5DEB3 100%);
+  background: linear-gradient(135deg, rgba(253, 248, 240, 0.95) 0%, rgba(245, 230, 211, 0.9) 100%);
   border: 2px solid #D4AF37;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(139, 69, 19, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(139, 69, 19, 0.15);
 }
 
 .theme-adat .countdown-number {
@@ -105,27 +47,41 @@
 }
 
 .theme-adat .card-section {
-  background: linear-gradient(135deg, rgba(253, 245, 230, 0.95) 0%, rgba(245, 222, 179, 0.9) 100%);
+  background: linear-gradient(145deg, rgba(253, 248, 240, 0.95) 0%, rgba(245, 230, 211, 0.9) 100%);
   border: 1px solid rgba(212, 175, 55, 0.3);
-  border-radius: 16px;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(139, 69, 19, 0.1);
 }
 
 .theme-adat .btn-primary {
   background: linear-gradient(135deg, #8B4513, #D4AF37);
   color: white;
   border: none;
+  transition: all 0.3s ease;
 }
 
 .theme-adat .btn-primary:hover {
   background: linear-gradient(135deg, #A0522D, #DAA520);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
 }
 
 .theme-adat .frame-photo {
   border: 4px solid #D4AF37;
-  box-shadow: 0 0 0 2px #8B4513, 0 8px 25px rgba(139, 69, 19, 0.3);
+  box-shadow: 0 0 0 3px #8B4513, 0 8px 30px rgba(139, 69, 19, 0.25);
 }
 
 .theme-adat .divider {
   height: 2px;
   background: linear-gradient(90deg, transparent, #D4AF37, #8B4513, #D4AF37, transparent);
+}
+
+/* Timeline specific styles */
+.theme-adat .timeline-dot {
+  background: linear-gradient(135deg, #8B4513, #D4AF37);
+  box-shadow: 0 0 0 4px #F5DEB3, 0 0 0 6px rgba(212, 175, 55, 0.3);
+}
+
+.theme-adat .timeline-line {
+  background: linear-gradient(180deg, #8B4513, #D4AF37, #8B4513);
 }
