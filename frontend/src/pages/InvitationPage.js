@@ -8,27 +8,39 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { 
-  Heart, Calendar, MapPin, Clock, Music, 
+  Heart, Calendar, MapPin, Clock, 
   Pause, Play, Send, Copy, Gift, ChevronDown,
-  ExternalLink, Users, MessageCircle
+  ExternalLink, Users, MessageCircle, Instagram
 } from 'lucide-react';
+
+// Theme imports
+import { ThemeProvider, THEMES } from '@/themes/ThemeProvider';
+import '@/themes/AdatTheme.css';
+import '@/themes/FloralTheme.css';
+import '@/themes/ModernTheme.css';
+
+// Invitation Components
+import {
+  CoverSection,
+  HeroSection,
+  CountdownSection,
+  QuoteSection,
+  VideoSection,
+  MusicPlayer
+} from '@/components/invitation';
 
 const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
-const InvitationPage = () => {
-  const { invitationId } = useParams();
-  const [searchParams] = useSearchParams();
-  const guestName = searchParams.get('kpd') || 'Tamu Undangan';
-  
-  const [invitation, setInvitation] = useState(null);
-  const [loading, setLoading] = useState(true);
+const InvitationContent = ({ invitation, guestName }) => {
   const [showCover, setShowCover] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [musicAutoPlay, setMusicAutoPlay] = useState(false);
   const [messages, setMessages] = useState([]);
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   
-  const audioRef = useRef(null);
   const sectionsRef = useRef([]);
+
+  // Get theme data
+  const theme = THEMES[invitation.theme] || THEMES.floral;
 
   // RSVP Form
   const [rsvpForm, setRsvpForm] = useState({
@@ -47,9 +59,8 @@ const InvitationPage = () => {
   const [messageLoading, setMessageLoading] = useState(false);
 
   useEffect(() => {
-    fetchInvitation();
     fetchMessages();
-  }, [invitationId]);
+  }, [invitation.id]);
 
   useEffect(() => {
     if (invitation?.events?.[0]?.date) {
@@ -91,21 +102,9 @@ const InvitationPage = () => {
     return () => observer.disconnect();
   }, [invitation, showCover]);
 
-  const fetchInvitation = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/public/invitation/${invitationId}`);
-      setInvitation(response.data);
-    } catch (error) {
-      console.error('Failed to fetch invitation:', error);
-      toast.error('Undangan tidak ditemukan');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchMessages = async () => {
     try {
-      const response = await axios.get(`${API_URL}/public/messages/${invitationId}`);
+      const response = await axios.get(`${API_URL}/public/messages/${invitation.id}`);
       setMessages(response.data);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
@@ -114,29 +113,14 @@ const InvitationPage = () => {
 
   const handleOpenInvitation = () => {
     setShowCover(false);
-    if (audioRef.current && invitation?.settings?.music_url) {
-      audioRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch(console.error);
-    }
-  };
-
-  const toggleMusic = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
+    setMusicAutoPlay(true);
   };
 
   const handleRSVPSubmit = async (e) => {
     e.preventDefault();
     setRsvpLoading(true);
     try {
-      await axios.post(`${API_URL}/public/rsvp/${invitationId}`, rsvpForm);
+      await axios.post(`${API_URL}/public/rsvp/${invitation.id}`, rsvpForm);
       toast.success('Konfirmasi kehadiran berhasil dikirim!');
       setRsvpForm({ ...rsvpForm, phone: '', guest_count: 1 });
     } catch (error) {
@@ -154,7 +138,7 @@ const InvitationPage = () => {
     }
     setMessageLoading(true);
     try {
-      await axios.post(`${API_URL}/public/messages/${invitationId}`, messageForm);
+      await axios.post(`${API_URL}/public/messages/${invitation.id}`, messageForm);
       toast.success('Ucapan berhasil dikirim!');
       setMessageForm({ ...messageForm, message: '' });
       fetchMessages();
@@ -185,59 +169,15 @@ const InvitationPage = () => {
     sectionsRef.current[index] = el;
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary">
-        <div className="text-center">
-          <Heart className="w-12 h-12 text-primary animate-pulse mx-auto mb-4" />
-          <p className="font-serif text-primary text-xl">Memuat undangan...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!invitation) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-secondary">
-        <div className="text-center p-8">
-          <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
-          <h1 className="font-serif text-2xl text-primary mb-2">Undangan Tidak Ditemukan</h1>
-          <p className="text-muted-foreground">Link undangan tidak valid atau sudah dihapus.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="invitation-container" data-testid="invitation-page">
-      {/* Audio Player */}
-      <audio ref={audioRef} src={invitation.settings?.music_url} loop />
-      
+    <div className={`invitation-container theme-${invitation.theme || 'floral'}`} data-testid="invitation-page">
       {/* Cover/Opening */}
       {showCover && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-secondary via-white to-secondary p-6">
-          <div className="text-center animate-fade-up">
-            <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground mb-4">The Wedding Of</p>
-            <h1 className="font-script text-5xl md:text-7xl text-primary mb-2">{invitation.groom.name}</h1>
-            <p className="font-script text-3xl text-accent">&</p>
-            <h1 className="font-script text-5xl md:text-7xl text-primary mt-2">{invitation.bride.name}</h1>
-            
-            <div className="mt-12 mb-8">
-              <p className="text-muted-foreground mb-2">Kepada Yth.</p>
-              <p className="text-xl font-serif text-foreground">Bapak/Ibu/Saudara/i</p>
-              <p className="text-2xl font-serif text-primary mt-1">{guestName}</p>
-            </div>
-            
-            <Button
-              onClick={handleOpenInvitation}
-              className="bg-primary hover:bg-primary/90 text-white px-8 py-6 rounded-full text-lg font-sans shadow-lg hover:shadow-xl transition-all"
-              data-testid="open-invitation-btn"
-            >
-              Buka Undangan
-              <ChevronDown className="ml-2 w-5 h-5 animate-bounce" />
-            </Button>
-          </div>
-        </div>
+        <CoverSection 
+          invitation={invitation} 
+          guestName={guestName} 
+          onOpenInvitation={handleOpenInvitation}
+        />
       )}
 
       {/* Main Content */}
@@ -246,41 +186,20 @@ const InvitationPage = () => {
           {/* Hero Section */}
           <section 
             ref={(el) => addSectionRef(el, 0)} 
-            className="fade-section min-h-screen flex flex-col items-center justify-center relative p-6 pt-12"
+            className="fade-section"
           >
-            <img 
-              src={invitation.groom.photo || "https://images.unsplash.com/photo-1528298936130-dace32e4221c?w=800"} 
-              alt="Couple" 
-              className="w-48 h-48 md:w-64 md:h-64 rounded-full object-cover border-4 border-white shadow-xl mb-8"
-            />
-            <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground mb-4">Pernikahan</p>
-            <h1 className="font-script text-5xl md:text-6xl text-primary">{invitation.groom.name}</h1>
-            <p className="font-script text-3xl text-accent my-2">&</p>
-            <h1 className="font-script text-5xl md:text-6xl text-primary">{invitation.bride.name}</h1>
-            
-            {invitation.events?.[0] && (
-              <p className="mt-8 text-lg text-muted-foreground font-serif">
-                {new Date(invitation.events[0].date).toLocaleDateString('id-ID', { 
-                  weekday: 'long', 
-                  day: 'numeric', 
-                  month: 'long', 
-                  year: 'numeric' 
-                })}
-              </p>
-            )}
+            <HeroSection invitation={invitation} />
           </section>
 
-          {/* Opening Text */}
+          {/* Quote/Opening Text */}
           <section 
             ref={(el) => addSectionRef(el, 1)} 
-            className="fade-section invitation-section text-center"
+            className="fade-section"
           >
-            <p className="text-base md:text-lg leading-relaxed text-foreground/80 max-w-sm mx-auto font-serif italic">
-              بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْم
-            </p>
-            <p className="mt-6 text-base leading-relaxed text-foreground/80 max-w-sm mx-auto">
-              {invitation.opening_text}
-            </p>
+            <QuoteSection 
+              quranVerse={invitation.quran_verse}
+              quranSurah={invitation.quran_surah}
+            />
           </section>
 
           {/* Couple Section */}
@@ -288,18 +207,41 @@ const InvitationPage = () => {
             ref={(el) => addSectionRef(el, 2)} 
             className="fade-section invitation-section"
           >
-            <h2 className="invitation-title">Mempelai</h2>
+            <h2 
+              className="section-title text-2xl text-center mb-8"
+              style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
+            >
+              Mempelai
+            </h2>
+            
+            {/* Opening text */}
+            <p className="text-center text-sm mb-8 opacity-80">
+              <strong>Assalamu'alaikum Warahmatullahi Wabarakatuh</strong>
+              <br /><br />
+              {invitation.opening_text}
+            </p>
             
             {/* Groom */}
             <div className="text-center mb-12">
               <img 
                 src={invitation.groom.photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400"} 
                 alt={invitation.groom.name}
-                className="w-36 h-36 rounded-full object-cover mx-auto border-4 border-white shadow-lg mb-4"
+                className="w-36 h-36 rounded-full object-cover mx-auto frame-photo mb-4"
               />
-              <h3 className="font-script text-4xl text-primary mb-2">{invitation.groom.full_name}</h3>
-              <p className="text-muted-foreground">{invitation.groom.child_order}</p>
-              <p className="text-foreground mt-1">
+              <p 
+                className="font-script text-3xl mb-1"
+                style={{ color: theme.primaryColor }}
+              >
+                {invitation.groom.name}
+              </p>
+              <h3 
+                className="font-serif text-xl mb-2"
+                style={{ color: theme.primaryColor }}
+              >
+                {invitation.groom.full_name}
+              </h3>
+              <p className="text-muted-foreground text-sm">{invitation.groom.child_order}</p>
+              <p className="text-foreground text-sm mt-1">
                 Bapak {invitation.groom.father_name} & Ibu {invitation.groom.mother_name}
               </p>
               {invitation.groom.instagram && (
@@ -307,15 +249,17 @@ const InvitationPage = () => {
                   href={`https://instagram.com/${invitation.groom.instagram}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-primary mt-2 hover:underline"
+                  className="inline-flex items-center mt-2 hover:underline text-sm"
+                  style={{ color: theme.primaryColor }}
                 >
+                  <Instagram className="w-4 h-4 mr-1" />
                   @{invitation.groom.instagram}
                 </a>
               )}
             </div>
 
             <div className="flex justify-center my-8">
-              <Heart className="w-8 h-8 text-accent" />
+              <Heart className="w-8 h-8" style={{ color: theme.accentColor }} />
             </div>
 
             {/* Bride */}
@@ -323,11 +267,22 @@ const InvitationPage = () => {
               <img 
                 src={invitation.bride.photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400"} 
                 alt={invitation.bride.name}
-                className="w-36 h-36 rounded-full object-cover mx-auto border-4 border-white shadow-lg mb-4"
+                className="w-36 h-36 rounded-full object-cover mx-auto frame-photo mb-4"
               />
-              <h3 className="font-script text-4xl text-primary mb-2">{invitation.bride.full_name}</h3>
-              <p className="text-muted-foreground">{invitation.bride.child_order}</p>
-              <p className="text-foreground mt-1">
+              <p 
+                className="font-script text-3xl mb-1"
+                style={{ color: theme.primaryColor }}
+              >
+                {invitation.bride.name}
+              </p>
+              <h3 
+                className="font-serif text-xl mb-2"
+                style={{ color: theme.primaryColor }}
+              >
+                {invitation.bride.full_name}
+              </h3>
+              <p className="text-muted-foreground text-sm">{invitation.bride.child_order}</p>
+              <p className="text-foreground text-sm mt-1">
                 Bapak {invitation.bride.father_name} & Ibu {invitation.bride.mother_name}
               </p>
               {invitation.bride.instagram && (
@@ -335,8 +290,10 @@ const InvitationPage = () => {
                   href={`https://instagram.com/${invitation.bride.instagram}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="inline-flex items-center text-primary mt-2 hover:underline"
+                  className="inline-flex items-center mt-2 hover:underline text-sm"
+                  style={{ color: theme.primaryColor }}
                 >
+                  <Instagram className="w-4 h-4 mr-1" />
                   @{invitation.bride.instagram}
                 </a>
               )}
@@ -346,34 +303,13 @@ const InvitationPage = () => {
           {/* Countdown Section */}
           <section 
             ref={(el) => addSectionRef(el, 3)} 
-            className="fade-section invitation-section bg-secondary/30"
+            className="fade-section py-12"
+            style={{ backgroundColor: `${theme.secondaryColor}40` }}
           >
-            <h2 className="invitation-title">Menuju Hari Bahagia</h2>
-            <div className="flex justify-center gap-3 md:gap-4">
-              {[
-                { value: countdown.days, label: 'Hari' },
-                { value: countdown.hours, label: 'Jam' },
-                { value: countdown.minutes, label: 'Menit' },
-                { value: countdown.seconds, label: 'Detik' }
-              ].map((item, index) => (
-                <div key={index} className="countdown-box text-center">
-                  <div className="countdown-number">{item.value}</div>
-                  <div className="countdown-label">{item.label}</div>
-                </div>
-              ))}
-            </div>
-            
-            <div className="mt-8 text-center">
-              <Button
-                onClick={addToCalendar}
-                variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-white rounded-full px-6"
-                data-testid="save-calendar-btn"
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Simpan ke Kalender
-              </Button>
-            </div>
+            <CountdownSection 
+              countdown={countdown} 
+              onAddToCalendar={addToCalendar}
+            />
           </section>
 
           {/* Events Section */}
@@ -381,16 +317,29 @@ const InvitationPage = () => {
             ref={(el) => addSectionRef(el, 4)} 
             className="fade-section invitation-section"
           >
-            <h2 className="invitation-title">Acara Pernikahan</h2>
+            <h2 
+              className="section-title text-2xl text-center mb-8"
+              style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
+            >
+              Acara Pernikahan
+            </h2>
             
             <div className="space-y-6">
               {invitation.events?.map((event, index) => (
-                <div key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10">
-                  <h3 className="font-serif text-xl text-primary mb-4 text-center">{event.name}</h3>
+                <div 
+                  key={index} 
+                  className="card-section p-6"
+                >
+                  <h3 
+                    className="font-serif text-xl text-center mb-4"
+                    style={{ color: theme.primaryColor }}
+                  >
+                    {event.name}
+                  </h3>
                   
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 text-accent mt-0.5" />
+                      <Calendar className="w-5 h-5 mt-0.5" style={{ color: theme.accentColor }} />
                       <div>
                         <p className="font-medium">
                           {new Date(event.date).toLocaleDateString('id-ID', { 
@@ -404,12 +353,12 @@ const InvitationPage = () => {
                     </div>
                     
                     <div className="flex items-start gap-3">
-                      <Clock className="w-5 h-5 text-accent mt-0.5" />
+                      <Clock className="w-5 h-5 mt-0.5" style={{ color: theme.accentColor }} />
                       <p>{event.time_start} - {event.time_end} WIB</p>
                     </div>
                     
                     <div className="flex items-start gap-3">
-                      <MapPin className="w-5 h-5 text-accent mt-0.5" />
+                      <MapPin className="w-5 h-5 mt-0.5" style={{ color: theme.accentColor }} />
                       <div>
                         <p className="font-medium">{event.venue_name}</p>
                         <p className="text-sm text-muted-foreground">{event.address}</p>
@@ -422,7 +371,11 @@ const InvitationPage = () => {
                       href={event.maps_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-4 inline-flex items-center justify-center w-full py-3 bg-secondary text-primary rounded-xl hover:bg-primary hover:text-white transition-colors"
+                      className="mt-4 inline-flex items-center justify-center w-full py-3 rounded-xl transition-colors"
+                      style={{ 
+                        backgroundColor: theme.secondaryColor, 
+                        color: theme.primaryColor 
+                      }}
                       data-testid={`maps-btn-${index}`}
                     >
                       <MapPin className="w-4 h-4 mr-2" />
@@ -454,25 +407,44 @@ const InvitationPage = () => {
           {invitation.love_story?.length > 0 && (
             <section 
               ref={(el) => addSectionRef(el, 5)} 
-              className="fade-section invitation-section bg-secondary/30"
+              className="fade-section invitation-section py-12"
+              style={{ backgroundColor: `${theme.secondaryColor}40` }}
             >
-              <h2 className="invitation-title">Love Story</h2>
+              <h2 
+                className="section-title text-2xl text-center mb-8"
+                style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
+              >
+                Love Story
+              </h2>
               
-              <div className="relative">
-                <div className="timeline-line" />
-                <div className="space-y-8">
-                  {invitation.love_story.map((story, index) => (
-                    <div key={story.id} className={`flex items-start gap-4 ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
-                      <div className={`w-1/2 ${index % 2 === 0 ? 'text-right pr-8' : 'text-left pl-8'}`}>
-                        <p className="text-sm text-accent font-medium mb-1">{story.date}</p>
-                        <h4 className="font-serif text-lg text-primary mb-2">{story.title}</h4>
-                        <p className="text-sm text-muted-foreground">{story.description}</p>
-                      </div>
-                      <div className="timeline-dot flex-shrink-0 relative z-10" />
-                      <div className="w-1/2" />
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-8 px-4">
+                {invitation.love_story.map((story, index) => (
+                  <div 
+                    key={story.id} 
+                    className="card-section p-6"
+                  >
+                    {story.image && (
+                      <img 
+                        src={story.image} 
+                        alt={story.title}
+                        className="w-full h-48 object-cover rounded-xl mb-4"
+                      />
+                    )}
+                    <p 
+                      className="text-sm font-medium mb-2"
+                      style={{ color: theme.accentColor }}
+                    >
+                      {story.date}
+                    </p>
+                    <h4 
+                      className="font-serif text-lg mb-2"
+                      style={{ color: theme.primaryColor }}
+                    >
+                      {story.title}
+                    </h4>
+                    <p className="text-sm text-muted-foreground">{story.description}</p>
+                  </div>
+                ))}
               </div>
             </section>
           )}
@@ -483,7 +455,12 @@ const InvitationPage = () => {
               ref={(el) => addSectionRef(el, 6)} 
               className="fade-section invitation-section"
             >
-              <h2 className="invitation-title">Galeri</h2>
+              <h2 
+                className="section-title text-2xl text-center mb-8"
+                style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
+              >
+                Galeri
+              </h2>
               
               <div className="gallery-grid">
                 {invitation.gallery.map((item, index) => (
@@ -506,19 +483,13 @@ const InvitationPage = () => {
           {invitation.video_url && (
             <section 
               ref={(el) => addSectionRef(el, 7)} 
-              className="fade-section invitation-section bg-secondary/30"
+              className="fade-section"
+              style={{ backgroundColor: `${theme.secondaryColor}40` }}
             >
-              <h2 className="invitation-title">Video</h2>
-              <div className="aspect-video rounded-2xl overflow-hidden shadow-lg">
-                <iframe
-                  src={invitation.video_url}
-                  width="100%"
-                  height="100%"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title="Wedding Video"
-                />
-              </div>
+              <VideoSection 
+                videoUrl={invitation.video_url}
+                title="Video Kami"
+              />
             </section>
           )}
 
@@ -527,16 +498,22 @@ const InvitationPage = () => {
             ref={(el) => addSectionRef(el, 8)} 
             className="fade-section invitation-section"
           >
-            <h2 className="invitation-title">Konfirmasi Kehadiran</h2>
+            <h2 
+              className="section-title text-2xl text-center mb-8"
+              style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
+            >
+              Konfirmasi Kehadiran
+            </h2>
             
-            <form onSubmit={handleRSVPSubmit} className="rsvp-form max-w-sm mx-auto">
+            <form onSubmit={handleRSVPSubmit} className="card-section p-6 max-w-sm mx-auto">
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Nama</Label>
                   <Input
                     value={rsvpForm.guest_name}
                     onChange={(e) => setRsvpForm({ ...rsvpForm, guest_name: e.target.value })}
-                    className="mt-1 rounded-xl border-primary/20"
+                    className="mt-1 rounded-xl"
+                    style={{ borderColor: `${theme.primaryColor}30` }}
                     data-testid="rsvp-name-input"
                   />
                 </div>
@@ -547,7 +524,8 @@ const InvitationPage = () => {
                     value={rsvpForm.phone}
                     onChange={(e) => setRsvpForm({ ...rsvpForm, phone: e.target.value })}
                     placeholder="08xxxxxxxxxx"
-                    className="mt-1 rounded-xl border-primary/20"
+                    className="mt-1 rounded-xl"
+                    style={{ borderColor: `${theme.primaryColor}30` }}
                     data-testid="rsvp-phone-input"
                   />
                 </div>
@@ -583,7 +561,8 @@ const InvitationPage = () => {
                       max="10"
                       value={rsvpForm.guest_count}
                       onChange={(e) => setRsvpForm({ ...rsvpForm, guest_count: parseInt(e.target.value) || 1 })}
-                      className="mt-1 rounded-xl border-primary/20 w-24"
+                      className="mt-1 rounded-xl w-24"
+                      style={{ borderColor: `${theme.primaryColor}30` }}
                       data-testid="rsvp-guest-count-input"
                     />
                   </div>
@@ -592,7 +571,8 @@ const InvitationPage = () => {
                 <Button
                   type="submit"
                   disabled={rsvpLoading}
-                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl py-6"
+                  className="w-full rounded-xl py-6 text-white"
+                  style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` }}
                   data-testid="rsvp-submit-btn"
                 >
                   <Users className="w-4 h-4 mr-2" />
@@ -605,19 +585,26 @@ const InvitationPage = () => {
           {/* Messages/Ucapan Section */}
           <section 
             ref={(el) => addSectionRef(el, 9)} 
-            className="fade-section invitation-section bg-secondary/30"
+            className="fade-section invitation-section py-12"
+            style={{ backgroundColor: `${theme.secondaryColor}40` }}
           >
-            <h2 className="invitation-title">Ucapan & Doa</h2>
+            <h2 
+              className="section-title text-2xl text-center mb-8"
+              style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
+            >
+              Ucapan & Doa
+            </h2>
             
             {/* Message Form */}
-            <form onSubmit={handleMessageSubmit} className="bg-white rounded-2xl p-6 shadow-sm border border-primary/10 mb-6 max-w-sm mx-auto">
+            <form onSubmit={handleMessageSubmit} className="card-section p-6 mb-6 max-w-sm mx-auto">
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Nama</Label>
                   <Input
                     value={messageForm.guest_name}
                     onChange={(e) => setMessageForm({ ...messageForm, guest_name: e.target.value })}
-                    className="mt-1 rounded-xl border-primary/20"
+                    className="mt-1 rounded-xl"
+                    style={{ borderColor: `${theme.primaryColor}30` }}
                     data-testid="message-name-input"
                   />
                 </div>
@@ -628,7 +615,8 @@ const InvitationPage = () => {
                     value={messageForm.message}
                     onChange={(e) => setMessageForm({ ...messageForm, message: e.target.value })}
                     placeholder="Tulis ucapan dan doa untuk kedua mempelai..."
-                    className="mt-1 rounded-xl border-primary/20 min-h-[100px]"
+                    className="mt-1 rounded-xl min-h-[100px]"
+                    style={{ borderColor: `${theme.primaryColor}30` }}
                     data-testid="message-content-input"
                   />
                 </div>
@@ -636,7 +624,8 @@ const InvitationPage = () => {
                 <Button
                   type="submit"
                   disabled={messageLoading}
-                  className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl py-5"
+                  className="w-full rounded-xl py-5 text-white"
+                  style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` }}
                   data-testid="message-submit-btn"
                 >
                   <Send className="w-4 h-4 mr-2" />
@@ -646,19 +635,29 @@ const InvitationPage = () => {
             </form>
             
             {/* Messages List */}
-            <div className="space-y-4 max-h-96 overflow-y-auto px-1">
+            <div className="space-y-4 max-h-96 overflow-y-auto px-4">
               {messages.map((msg) => (
-                <div key={msg.id} className="message-card">
+                <div key={msg.id} className="card-section p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                      <span className="font-serif text-primary">{msg.guest_name.charAt(0)}</span>
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: theme.secondaryColor }}
+                    >
+                      <span className="font-serif" style={{ color: theme.primaryColor }}>
+                        {msg.guest_name.charAt(0)}
+                      </span>
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-foreground">{msg.guest_name}</p>
                       <p className="text-muted-foreground text-sm mt-1">{msg.message}</p>
                       {msg.reply && (
-                        <div className="mt-3 pl-4 border-l-2 border-accent">
-                          <p className="text-sm text-accent font-medium">Balasan dari mempelai:</p>
+                        <div 
+                          className="mt-3 pl-4 border-l-2"
+                          style={{ borderColor: theme.accentColor }}
+                        >
+                          <p className="text-sm font-medium" style={{ color: theme.accentColor }}>
+                            Balasan dari mempelai:
+                          </p>
                           <p className="text-sm text-muted-foreground">{msg.reply}</p>
                         </div>
                       )}
@@ -682,25 +681,41 @@ const InvitationPage = () => {
               ref={(el) => addSectionRef(el, 10)} 
               className="fade-section invitation-section"
             >
-              <h2 className="invitation-title">Kirim Hadiah</h2>
-              <p className="text-center text-muted-foreground mb-6 max-w-sm mx-auto">
-                Tanpa mengurangi rasa hormat, bagi Anda yang ingin memberikan tanda kasih, dapat melalui:
+              <h2 
+                className="section-title text-2xl text-center mb-8"
+                style={{ fontFamily: theme.fontHeading, color: theme.primaryColor }}
+              >
+                Kirim Hadiah
+              </h2>
+              <p className="text-center text-muted-foreground mb-6 max-w-sm mx-auto text-sm">
+                Doa Restu Anda merupakan karunia yang sangat berarti bagi kami. 
+                Dan jika memberi adalah ungkapan tanda kasih, Anda dapat memberi melalui:
               </p>
               
               <div className="space-y-4 max-w-sm mx-auto">
                 {invitation.gifts.map((gift) => (
-                  <div key={gift.id} className="gift-card">
+                  <div 
+                    key={gift.id} 
+                    className="card-section p-5"
+                    style={{ 
+                      background: `linear-gradient(135deg, white 0%, ${theme.secondaryColor} 100%)`,
+                      border: `1px solid ${theme.accentColor}30`
+                    }}
+                  >
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-muted-foreground">{gift.bank_name}</p>
                         <p className="font-mono text-lg text-foreground mt-1">{gift.account_number}</p>
-                        <p className="text-sm text-primary">a.n. {gift.account_holder}</p>
+                        <p className="text-sm" style={{ color: theme.primaryColor }}>
+                          a.n. {gift.account_holder}
+                        </p>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => copyBankAccount(gift.account_number)}
-                        className="border-accent text-accent hover:bg-accent hover:text-white rounded-lg"
+                        className="rounded-lg"
+                        style={{ borderColor: theme.accentColor, color: theme.accentColor }}
                         data-testid={`copy-bank-${gift.id}`}
                       >
                         <Copy className="w-4 h-4" />
@@ -715,45 +730,118 @@ const InvitationPage = () => {
           {/* Closing Section */}
           <section 
             ref={(el) => addSectionRef(el, 11)} 
-            className="fade-section invitation-section bg-secondary/50 text-center"
+            className="fade-section invitation-section text-center py-16"
+            style={{ backgroundColor: `${theme.secondaryColor}60` }}
           >
-            <Heart className="w-8 h-8 text-primary mx-auto mb-6" />
-            <p className="text-base leading-relaxed text-foreground/80 max-w-sm mx-auto mb-8">
+            {/* Ornaments */}
+            {theme.ornaments?.topLeft && (
+              <img 
+                src={theme.ornaments.topLeft} 
+                alt="" 
+                className="ornament-top-left object-cover"
+              />
+            )}
+            {theme.ornaments?.topRight && (
+              <img 
+                src={theme.ornaments.topRight} 
+                alt="" 
+                className="ornament-top-right object-cover"
+              />
+            )}
+            
+            <Heart className="w-8 h-8 mx-auto mb-6" style={{ color: theme.primaryColor }} />
+            
+            <p className="text-base leading-relaxed max-w-sm mx-auto mb-8 opacity-80">
               {invitation.closing_text}
             </p>
             
-            <p className="font-serif text-lg text-primary mb-2">Wassalamu'alaikum Wr. Wb.</p>
+            <p className="font-serif text-lg mb-2" style={{ color: theme.primaryColor }}>
+              Wassalamu'alaikum Wr. Wb.
+            </p>
             
             <div className="mt-8">
               <p className="text-muted-foreground text-sm">Kami yang berbahagia,</p>
-              <p className="font-script text-3xl text-primary mt-2">
-                {invitation.groom.name} & {invitation.bride.name}
+              <p 
+                className="font-script text-3xl mt-2"
+                style={{ color: theme.primaryColor }}
+              >
+                {invitation.groom?.name} & {invitation.bride?.name}
               </p>
             </div>
             
-            <div className="section-divider mt-12" />
+            <div 
+              className="divider w-20 mx-auto mt-12"
+              style={{ background: `linear-gradient(90deg, transparent, ${theme.accentColor}, transparent)` }}
+            />
             
             <p className="text-xs text-muted-foreground mt-8">
               Made with ❤️ by Undangan Digital
             </p>
           </section>
 
-          {/* Music Player Button */}
-          <button
-            onClick={toggleMusic}
-            className="music-player-btn"
-            data-testid="music-toggle-btn"
-          >
-            {isPlaying ? (
-              <Pause className="w-6 h-6" />
-            ) : (
-              <Play className="w-6 h-6 ml-1" />
-            )}
-            <span className={`absolute inset-0 rounded-full border-2 border-white/30 ${isPlaying ? 'vinyl-spinning' : ''}`} />
-          </button>
+          {/* Music Player */}
+          <MusicPlayer 
+            musicUrl={invitation.settings?.music_url}
+            musicList={invitation.settings?.music_list || []}
+            autoPlay={musicAutoPlay}
+          />
         </>
       )}
     </div>
+  );
+};
+
+const InvitationPage = () => {
+  const { invitationId } = useParams();
+  const [searchParams] = useSearchParams();
+  const guestName = searchParams.get('kpd') || 'Tamu Undangan';
+  
+  const [invitation, setInvitation] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchInvitation();
+  }, [invitationId]);
+
+  const fetchInvitation = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/public/invitation/${invitationId}`);
+      setInvitation(response.data);
+    } catch (error) {
+      console.error('Failed to fetch invitation:', error);
+      toast.error('Undangan tidak ditemukan');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
+        <div className="text-center">
+          <Heart className="w-12 h-12 text-primary animate-pulse mx-auto mb-4" />
+          <p className="font-serif text-primary text-xl">Memuat undangan...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!invitation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-secondary">
+        <div className="text-center p-8">
+          <Heart className="w-12 h-12 text-primary mx-auto mb-4" />
+          <h1 className="font-serif text-2xl text-primary mb-2">Undangan Tidak Ditemukan</h1>
+          <p className="text-muted-foreground">Link undangan tidak valid atau sudah dihapus.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ThemeProvider theme={invitation.theme || 'floral'}>
+      <InvitationContent invitation={invitation} guestName={guestName} />
+    </ThemeProvider>
   );
 };
 
