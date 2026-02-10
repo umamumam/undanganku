@@ -1,5 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -7,19 +8,26 @@ import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field, EmailStr
-from typing import List, Optional
+from typing import List, Optional, Literal
 import uuid
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
+import shutil
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+# Create uploads directory
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+MUSIC_DIR = UPLOAD_DIR / "music"
+MUSIC_DIR.mkdir(exist_ok=True)
+
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'undanganku')]
 
 # JWT Settings
 JWT_SECRET = os.environ.get('JWT_SECRET', 'wedding-secret-key-2024')
@@ -30,6 +38,65 @@ security = HTTPBearer()
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+
+# Serve static files for uploads
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
+# ============ THEME DEFINITIONS ============
+
+THEMES = {
+    "adat": {
+        "id": "adat",
+        "name": "Adat/Traditional",
+        "description": "Tema dengan ornamen tradisional Indonesia",
+        "primary_color": "#8B4513",
+        "secondary_color": "#F5DEB3",
+        "accent_color": "#D4AF37",
+        "font_heading": "Cinzel",
+        "font_body": "Manrope",
+        "ornaments": {
+            "top_left": "https://images.unsplash.com/photo-1762111067760-1f0fc2aa2866?w=400",
+            "top_right": "https://images.unsplash.com/photo-1761517099247-71400d18ccd8?w=400",
+            "bottom": "https://images.unsplash.com/photo-1761515315519-7fa1af1d3e06?w=400",
+            "divider": "https://images.unsplash.com/photo-1762111067760-1f0fc2aa2866?w=200"
+        },
+        "background_pattern": "batik"
+    },
+    "floral": {
+        "id": "floral",
+        "name": "Floral/Bunga",
+        "description": "Tema dengan dekorasi bunga yang elegan",
+        "primary_color": "#B76E79",
+        "secondary_color": "#F5E6E8",
+        "accent_color": "#D4AF37",
+        "font_heading": "Playfair Display",
+        "font_body": "Manrope",
+        "ornaments": {
+            "top_left": "https://images.unsplash.com/photo-1581720848095-2b72764b08a2?w=400",
+            "top_right": "https://images.unsplash.com/photo-1581720848209-9721f8fa30ff?w=400",
+            "bottom": "https://images.unsplash.com/photo-1762805088436-ffa7b89779a9?w=400",
+            "divider": "https://images.unsplash.com/photo-1581720848095-2b72764b08a2?w=200"
+        },
+        "background_pattern": "floral"
+    },
+    "modern": {
+        "id": "modern",
+        "name": "Modern/Minimalist",
+        "description": "Tema modern dengan desain minimalis",
+        "primary_color": "#2C3E50",
+        "secondary_color": "#ECF0F1",
+        "accent_color": "#E74C3C",
+        "font_heading": "Montserrat",
+        "font_body": "Open Sans",
+        "ornaments": {
+            "top_left": "",
+            "top_right": "",
+            "bottom": "",
+            "divider": ""
+        },
+        "background_pattern": "none"
+    }
+}
 
 # ============ MODELS ============
 
@@ -59,11 +126,11 @@ class CoupleInfo(BaseModel):
     photo: Optional[str] = ""
     father_name: str
     mother_name: str
-    child_order: str  # "Putra/Putri pertama dari..."
+    child_order: str
     instagram: Optional[str] = ""
 
 class EventInfo(BaseModel):
-    name: str  # "Akad Nikah" atau "Resepsi"
+    name: str
     date: str
     time_start: str
     time_end: str
@@ -90,16 +157,35 @@ class GiftAccount(BaseModel):
     account_number: str
     account_holder: str
 
+# Music Item Model
+class MusicItem(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    title: str
+    source_type: Literal["mp3", "youtube", "upload"] = "mp3"
+    url: str
+    is_active: bool = False
+
 class InvitationSettings(BaseModel):
-    music_url: Optional[str] = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+    music_url: Optional[str] = ""
+    music_list: List[MusicItem] = []
+    active_music_id: Optional[str] = ""
     primary_color: Optional[str] = "#B76E79"
     secondary_color: Optional[str] = "#F5E6E8"
     accent_color: Optional[str] = "#D4AF37"
     font_heading: Optional[str] = "Playfair Display"
     font_body: Optional[str] = "Manrope"
     auto_scroll: Optional[bool] = True
+    show_countdown: Optional[bool] = True
+    show_love_story: Optional[bool] = True
+    show_gallery: Optional[bool] = True
+    show_video: Optional[bool] = True
+    show_gift: Optional[bool] = True
+    show_rsvp: Optional[bool] = True
+    show_messages: Optional[bool] = True
 
 class InvitationCreate(BaseModel):
+    theme: Literal["adat", "floral", "modern"] = "floral"
+    cover_photo: Optional[str] = ""
     groom: CoupleInfo
     bride: CoupleInfo
     events: List[EventInfo]
@@ -110,11 +196,15 @@ class InvitationCreate(BaseModel):
     closing_text: Optional[str] = "Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir untuk memberikan doa restu kepada kedua mempelai."
     video_url: Optional[str] = ""
     streaming_url: Optional[str] = ""
+    quran_verse: Optional[str] = "Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang."
+    quran_surah: Optional[str] = "Q.S Ar-Rum : 21"
     settings: InvitationSettings = InvitationSettings()
 
 class InvitationResponse(BaseModel):
     id: str
     user_id: str
+    theme: str
+    cover_photo: str
     groom: CoupleInfo
     bride: CoupleInfo
     events: List[EventInfo]
@@ -125,6 +215,8 @@ class InvitationResponse(BaseModel):
     closing_text: str
     video_url: str
     streaming_url: str
+    quran_verse: str
+    quran_surah: str
     settings: InvitationSettings
     created_at: str
     updated_at: str
@@ -133,7 +225,7 @@ class InvitationResponse(BaseModel):
 class RSVPCreate(BaseModel):
     guest_name: str
     phone: Optional[str] = ""
-    attendance: str  # "hadir", "tidak_hadir", "belum_pasti"
+    attendance: str
     guest_count: int = 1
 
 class RSVPResponse(BaseModel):
@@ -201,6 +293,49 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+# ============ UTILITY FUNCTIONS ============
+
+def convert_youtube_to_embed(url: str) -> str:
+    """Convert YouTube URL to embed URL"""
+    if not url:
+        return ""
+    
+    video_id = None
+    
+    # Handle various YouTube URL formats
+    if "youtube.com/watch?v=" in url:
+        video_id = url.split("v=")[1].split("&")[0]
+    elif "youtu.be/" in url:
+        video_id = url.split("youtu.be/")[1].split("?")[0]
+    elif "youtube.com/embed/" in url:
+        return url  # Already embed URL
+    elif "youtube.com/shorts/" in url:
+        video_id = url.split("shorts/")[1].split("?")[0]
+    
+    if video_id:
+        return f"https://www.youtube.com/embed/{video_id}"
+    
+    return url
+
+def get_youtube_audio_url(url: str) -> str:
+    """Get YouTube video ID for audio playback"""
+    if not url:
+        return ""
+    
+    video_id = None
+    
+    if "youtube.com/watch?v=" in url:
+        video_id = url.split("v=")[1].split("&")[0]
+    elif "youtu.be/" in url:
+        video_id = url.split("youtu.be/")[1].split("?")[0]
+    elif "youtube.com/embed/" in url:
+        video_id = url.split("embed/")[1].split("?")[0]
+    
+    if video_id:
+        return video_id
+    
+    return ""
+
 # ============ AUTH ROUTES ============
 
 @api_router.post("/auth/register", response_model=TokenResponse)
@@ -241,6 +376,47 @@ async def login(data: UserLogin):
 async def get_me(user: dict = Depends(get_current_user)):
     return UserResponse(id=user["id"], email=user["email"], name=user["name"])
 
+# ============ THEME ROUTES ============
+
+@api_router.get("/themes")
+async def get_themes():
+    """Get all available themes"""
+    return list(THEMES.values())
+
+@api_router.get("/themes/{theme_id}")
+async def get_theme(theme_id: str):
+    """Get specific theme by ID"""
+    if theme_id not in THEMES:
+        raise HTTPException(status_code=404, detail="Theme not found")
+    return THEMES[theme_id]
+
+# ============ MUSIC UPLOAD ROUTE ============
+
+@api_router.post("/upload/music")
+async def upload_music(
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """Upload music file (MP3)"""
+    if not file.filename.lower().endswith(('.mp3', '.wav', '.ogg', '.m4a')):
+        raise HTTPException(status_code=400, detail="Only audio files are allowed")
+    
+    # Generate unique filename
+    file_ext = file.filename.split('.')[-1]
+    unique_filename = f"{uuid.uuid4()}.{file_ext}"
+    file_path = MUSIC_DIR / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Return URL
+    return {
+        "filename": file.filename,
+        "url": f"/uploads/music/{unique_filename}",
+        "message": "Music uploaded successfully"
+    }
+
 # ============ INVITATION ROUTES (ADMIN) ============
 
 @api_router.post("/invitations", response_model=InvitationResponse)
@@ -248,13 +424,28 @@ async def create_invitation(data: InvitationCreate, user: dict = Depends(get_cur
     invitation_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
+    # Convert video URL to embed
+    video_embed = convert_youtube_to_embed(data.video_url)
+    
     doc = {
         "id": invitation_id,
         "user_id": user["id"],
         **data.model_dump(),
+        "video_url": video_embed,
         "created_at": now,
         "updated_at": now
     }
+    
+    # Set defaults for new fields if not present
+    if "theme" not in doc:
+        doc["theme"] = "floral"
+    if "cover_photo" not in doc:
+        doc["cover_photo"] = ""
+    if "quran_verse" not in doc:
+        doc["quran_verse"] = data.quran_verse or ""
+    if "quran_surah" not in doc:
+        doc["quran_surah"] = data.quran_surah or ""
+    
     await db.invitations.insert_one(doc)
     
     result = await db.invitations.find_one({"id": invitation_id}, {"_id": 0})
@@ -263,6 +454,23 @@ async def create_invitation(data: InvitationCreate, user: dict = Depends(get_cur
 @api_router.get("/invitations", response_model=List[InvitationResponse])
 async def get_user_invitations(user: dict = Depends(get_current_user)):
     invitations = await db.invitations.find({"user_id": user["id"]}, {"_id": 0}).to_list(100)
+    
+    # Add default values for old invitations
+    for inv in invitations:
+        if "theme" not in inv:
+            inv["theme"] = "floral"
+        if "cover_photo" not in inv:
+            inv["cover_photo"] = ""
+        if "quran_verse" not in inv:
+            inv["quran_verse"] = ""
+        if "quran_surah" not in inv:
+            inv["quran_surah"] = ""
+        if "settings" not in inv:
+            inv["settings"] = InvitationSettings().model_dump()
+        elif "music_list" not in inv.get("settings", {}):
+            inv["settings"]["music_list"] = []
+            inv["settings"]["active_music_id"] = ""
+    
     return invitations
 
 @api_router.get("/invitations/{invitation_id}", response_model=InvitationResponse)
@@ -272,6 +480,17 @@ async def get_invitation(invitation_id: str, user: dict = Depends(get_current_us
     )
     if not invitation:
         raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Add default values
+    if "theme" not in invitation:
+        invitation["theme"] = "floral"
+    if "cover_photo" not in invitation:
+        invitation["cover_photo"] = ""
+    if "quran_verse" not in invitation:
+        invitation["quran_verse"] = ""
+    if "quran_surah" not in invitation:
+        invitation["quran_surah"] = ""
+    
     return invitation
 
 @api_router.put("/invitations/{invitation_id}", response_model=InvitationResponse)
@@ -280,8 +499,12 @@ async def update_invitation(invitation_id: str, data: InvitationCreate, user: di
     if not existing:
         raise HTTPException(status_code=404, detail="Invitation not found")
     
+    # Convert video URL to embed
+    video_embed = convert_youtube_to_embed(data.video_url)
+    
     update_doc = {
         **data.model_dump(),
+        "video_url": video_embed,
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     await db.invitations.update_one({"id": invitation_id}, {"$set": update_doc})
@@ -308,6 +531,26 @@ async def get_public_invitation(invitation_id: str):
     invitation = await db.invitations.find_one({"id": invitation_id}, {"_id": 0})
     if not invitation:
         raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Add default values for old invitations
+    if "theme" not in invitation:
+        invitation["theme"] = "floral"
+    if "cover_photo" not in invitation:
+        invitation["cover_photo"] = ""
+    if "quran_verse" not in invitation:
+        invitation["quran_verse"] = ""
+    if "quran_surah" not in invitation:
+        invitation["quran_surah"] = ""
+    if "settings" not in invitation:
+        invitation["settings"] = InvitationSettings().model_dump()
+    elif "music_list" not in invitation.get("settings", {}):
+        invitation["settings"]["music_list"] = []
+        invitation["settings"]["active_music_id"] = ""
+    
+    # Get theme data
+    theme_data = THEMES.get(invitation["theme"], THEMES["floral"])
+    invitation["theme_data"] = theme_data
+    
     return invitation
 
 # ============ RSVP ROUTES ============
@@ -452,7 +695,7 @@ async def get_invitation_stats(invitation_id: str, user: dict = Depends(get_curr
 
 @api_router.get("/")
 async def root():
-    return {"message": "Wedding Invitation API"}
+    return {"message": "Wedding Invitation API", "version": "2.0"}
 
 # Include router
 app.include_router(api_router)
