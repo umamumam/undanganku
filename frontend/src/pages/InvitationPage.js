@@ -171,7 +171,13 @@ const InvitationContent = ({ invitation, guestName }) => {
   };
 
   return (
-    <div className={`invitation-container theme-${invitation.theme || 'floral'}`} data-testid="invitation-page">
+    <div 
+      className={`invitation-container theme-${invitation.theme || 'floral'}`} 
+      data-testid="invitation-page"
+      style={{
+        background: `linear-gradient(180deg, ${theme.gradientStart} 0%, ${theme.gradientMid} 30%, ${theme.gradientEnd} 60%, ${theme.gradientMid} 80%, ${theme.gradientStart} 100%)`
+      }}
+    >
       {/* Cover/Opening */}
       {showCover && (
         <CoverSection 
