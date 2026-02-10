@@ -8,14 +8,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Heart, User, Calendar, MapPin, Image, 
-  Gift, MessageCircle, Settings, Plus, Trash2, Save
+  Gift, MessageCircle, Settings, Plus, Trash2, Save,
+  Palette, Music, Video, Check
 } from 'lucide-react';
+import { THEMES } from '@/themes/ThemeProvider';
 
 const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const initialFormData = {
+  theme: 'floral',
+  cover_photo: '',
   groom: {
     name: '',
     full_name: '',
@@ -63,15 +68,92 @@ const initialFormData = {
   closing_text: 'Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir untuk memberikan doa restu kepada kedua mempelai.',
   video_url: '',
   streaming_url: '',
+  quran_verse: 'Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu dari jenismu sendiri, agar kamu cenderung dan merasa tenteram kepadanya, dan Dia menjadikan di antaramu rasa kasih dan sayang.',
+  quran_surah: 'Q.S Ar-Rum : 21',
   settings: {
-    music_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+    music_url: '',
+    music_list: [],
+    active_music_id: '',
     primary_color: '#B76E79',
     secondary_color: '#F5E6E8',
     accent_color: '#D4AF37',
     font_heading: 'Playfair Display',
     font_body: 'Manrope',
-    auto_scroll: true
+    auto_scroll: true,
+    show_countdown: true,
+    show_love_story: true,
+    show_gallery: true,
+    show_video: true,
+    show_gift: true,
+    show_rsvp: true,
+    show_messages: true
   }
+};
+
+const ThemePreview = ({ theme, isSelected, onClick }) => {
+  const themeData = THEMES[theme];
+  return (
+    <div 
+      onClick={onClick}
+      className={`relative cursor-pointer rounded-xl border-2 overflow-hidden transition-all ${
+        isSelected ? 'border-primary ring-2 ring-primary/30' : 'border-gray-200 hover:border-gray-300'
+      }`}
+    >
+      {/* Preview */}
+      <div 
+        className="h-32 p-4 flex flex-col items-center justify-center"
+        style={{ 
+          background: `linear-gradient(to bottom, ${themeData.gradientStart}, ${themeData.gradientMid}, ${themeData.gradientEnd})`
+        }}
+      >
+        <p className="text-xs opacity-60" style={{ color: themeData.primaryColor }}>THE WEDDING OF</p>
+        <p 
+          className="font-script text-xl mt-1"
+          style={{ color: themeData.primaryColor, fontFamily: "'Great Vibes', cursive" }}
+        >
+          Romeo & Juliet
+        </p>
+        <div 
+          className="w-8 h-0.5 mt-2"
+          style={{ background: themeData.accentColor }}
+        />
+      </div>
+      
+      {/* Info */}
+      <div className="p-3 bg-white">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-medium text-sm">{themeData.name}</p>
+            <p className="text-xs text-muted-foreground">{themeData.description}</p>
+          </div>
+          {isSelected && (
+            <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+              <Check className="w-4 h-4 text-white" />
+            </div>
+          )}
+        </div>
+        
+        {/* Color swatches */}
+        <div className="flex gap-1 mt-2">
+          <div 
+            className="w-5 h-5 rounded-full border"
+            style={{ backgroundColor: themeData.primaryColor }}
+            title="Primary"
+          />
+          <div 
+            className="w-5 h-5 rounded-full border"
+            style={{ backgroundColor: themeData.secondaryColor }}
+            title="Secondary"
+          />
+          <div 
+            className="w-5 h-5 rounded-full border"
+            style={{ backgroundColor: themeData.accentColor }}
+            title="Accent"
+          />
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const CreateInvitation = () => {
@@ -79,7 +161,7 @@ const CreateInvitation = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState(initialFormData);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('couple');
+  const [activeTab, setActiveTab] = useState('theme');
 
   const updateFormData = (section, field, value) => {
     setFormData(prev => ({
@@ -168,6 +250,56 @@ const CreateInvitation = () => {
     }));
   };
 
+  // Music list functions
+  const addMusicItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        music_list: [
+          ...prev.settings.music_list,
+          { id: Date.now().toString(), title: '', source_type: 'mp3', url: '', is_active: false }
+        ]
+      }
+    }));
+  };
+
+  const updateMusicItem = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        music_list: prev.settings.music_list.map((item, i) => 
+          i === index ? { ...item, [field]: value } : item
+        )
+      }
+    }));
+  };
+
+  const removeMusicItem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        music_list: prev.settings.music_list.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  const setActiveMusic = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        active_music_id: id,
+        music_list: prev.settings.music_list.map(item => ({
+          ...item,
+          is_active: item.id === id
+        }))
+      }
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -215,35 +347,86 @@ const CreateInvitation = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full flex flex-wrap h-auto gap-1 bg-secondary/50 p-1 rounded-xl mb-6">
-          <TabsTrigger value="couple" className="flex-1 min-w-[120px] rounded-lg data-[state=active]:bg-white">
+          <TabsTrigger value="theme" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
+            <Palette className="w-4 h-4 mr-2" />
+            Tema
+          </TabsTrigger>
+          <TabsTrigger value="couple" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
             <User className="w-4 h-4 mr-2" />
             Mempelai
           </TabsTrigger>
-          <TabsTrigger value="events" className="flex-1 min-w-[120px] rounded-lg data-[state=active]:bg-white">
+          <TabsTrigger value="events" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
             <Calendar className="w-4 h-4 mr-2" />
             Acara
           </TabsTrigger>
-          <TabsTrigger value="story" className="flex-1 min-w-[120px] rounded-lg data-[state=active]:bg-white">
+          <TabsTrigger value="story" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
             <Heart className="w-4 h-4 mr-2" />
             Love Story
           </TabsTrigger>
-          <TabsTrigger value="gallery" className="flex-1 min-w-[120px] rounded-lg data-[state=active]:bg-white">
+          <TabsTrigger value="gallery" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
             <Image className="w-4 h-4 mr-2" />
             Galeri
           </TabsTrigger>
-          <TabsTrigger value="gifts" className="flex-1 min-w-[120px] rounded-lg data-[state=active]:bg-white">
+          <TabsTrigger value="media" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
+            <Video className="w-4 h-4 mr-2" />
+            Media
+          </TabsTrigger>
+          <TabsTrigger value="gifts" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
             <Gift className="w-4 h-4 mr-2" />
             Hadiah
           </TabsTrigger>
-          <TabsTrigger value="content" className="flex-1 min-w-[120px] rounded-lg data-[state=active]:bg-white">
+          <TabsTrigger value="content" className="flex-1 min-w-[100px] rounded-lg data-[state=active]:bg-white">
             <MessageCircle className="w-4 h-4 mr-2" />
             Konten
           </TabsTrigger>
-          <TabsTrigger value="settings" className="flex-1 min-w-[120px] rounded-lg data-[state=active]:bg-white">
-            <Settings className="w-4 h-4 mr-2" />
-            Pengaturan
-          </TabsTrigger>
         </TabsList>
+
+        {/* Theme Tab */}
+        <TabsContent value="theme">
+          <div className="bg-white rounded-xl border p-6">
+            <h3 className="font-serif text-lg text-primary mb-4 flex items-center gap-2">
+              <Palette className="w-5 h-5" />
+              Pilih Tema Undangan
+            </h3>
+            <p className="text-muted-foreground text-sm mb-6">
+              Pilih tema yang sesuai dengan konsep pernikahan Anda
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Object.keys(THEMES).map((themeKey) => (
+                <ThemePreview
+                  key={themeKey}
+                  theme={themeKey}
+                  isSelected={formData.theme === themeKey}
+                  onClick={() => setFormData(prev => ({ ...prev, theme: themeKey }))}
+                />
+              ))}
+            </div>
+            
+            <div className="mt-6 pt-6 border-t">
+              <Label>Foto Cover (untuk tampilan awal undangan)</Label>
+              <Input
+                value={formData.cover_photo}
+                onChange={(e) => setFormData({ ...formData, cover_photo: e.target.value })}
+                placeholder="https://example.com/foto-cover.jpg"
+                className="mt-2"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Foto ini akan ditampilkan di halaman cover/pembuka undangan
+              </p>
+              
+              {formData.cover_photo && (
+                <div className="mt-3">
+                  <img 
+                    src={formData.cover_photo} 
+                    alt="Cover Preview" 
+                    className="w-32 h-32 object-cover rounded-full mx-auto border-4 border-white shadow-lg"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
 
         {/* Couple Tab */}
         <TabsContent value="couple">
@@ -283,6 +466,9 @@ const CreateInvitation = () => {
                     placeholder="https://example.com/foto.jpg"
                     className="mt-1"
                   />
+                  {formData.groom.photo && (
+                    <img src={formData.groom.photo} alt="Preview" className="w-20 h-20 object-cover rounded-full mt-2" />
+                  )}
                 </div>
                 <div>
                   <Label>Anak ke- / Keterangan</Label>
@@ -358,6 +544,9 @@ const CreateInvitation = () => {
                     placeholder="https://example.com/foto.jpg"
                     className="mt-1"
                   />
+                  {formData.bride.photo && (
+                    <img src={formData.bride.photo} alt="Preview" className="w-20 h-20 object-cover rounded-full mt-2" />
+                  )}
                 </div>
                 <div>
                   <Label>Anak ke- / Keterangan</Label>
@@ -544,6 +733,15 @@ const CreateInvitation = () => {
                           className="mt-1"
                         />
                       </div>
+                      <div className="md:col-span-3">
+                        <Label>URL Gambar (opsional)</Label>
+                        <Input
+                          value={story.image}
+                          onChange={(e) => updateLoveStory(index, 'image', e.target.value)}
+                          placeholder="https://example.com/foto.jpg"
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
                     <Button
                       type="button"
@@ -630,6 +828,156 @@ const CreateInvitation = () => {
           </div>
         </TabsContent>
 
+        {/* Media Tab (Video & Music) */}
+        <TabsContent value="media">
+          <div className="space-y-6">
+            {/* Video Section */}
+            <div className="bg-white rounded-xl border p-6">
+              <h3 className="font-serif text-lg text-primary mb-4 flex items-center gap-2">
+                <Video className="w-5 h-5" />
+                Video
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>URL Video YouTube</Label>
+                  <Input
+                    value={formData.video_url}
+                    onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=xxxxx atau https://youtu.be/xxxxx"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Masukkan link YouTube biasa, akan otomatis dikonversi ke embed player
+                  </p>
+                </div>
+                <div>
+                  <Label>URL Live Streaming</Label>
+                  <Input
+                    value={formData.streaming_url}
+                    onChange={(e) => setFormData({ ...formData, streaming_url: e.target.value })}
+                    placeholder="https://..."
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Music Section */}
+            <div className="bg-white rounded-xl border p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-serif text-lg text-primary flex items-center gap-2">
+                  <Music className="w-5 h-5" />
+                  Musik Background
+                </h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={addMusicItem}
+                  className="border-primary text-primary hover:bg-primary hover:text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Musik
+                </Button>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mb-4">
+                Anda bisa menambahkan beberapa musik dan memilih satu yang aktif. 
+                Mendukung link MP3 langsung atau link YouTube.
+              </p>
+              
+              {formData.settings.music_list.length === 0 ? (
+                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <Music className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-muted-foreground">
+                    Belum ada musik. Klik "Tambah Musik" untuk menambahkan.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {formData.settings.music_list.map((music, index) => (
+                    <div 
+                      key={music.id} 
+                      className={`border rounded-lg p-4 ${music.is_active ? 'border-primary bg-primary/5' : ''}`}
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <div>
+                          <Label>Judul Lagu</Label>
+                          <Input
+                            value={music.title}
+                            onChange={(e) => updateMusicItem(index, 'title', e.target.value)}
+                            placeholder="Nama lagu"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label>Tipe</Label>
+                          <select
+                            value={music.source_type}
+                            onChange={(e) => updateMusicItem(index, 'source_type', e.target.value)}
+                            className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background"
+                          >
+                            <option value="mp3">MP3 URL</option>
+                            <option value="youtube">YouTube</option>
+                          </select>
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label>URL</Label>
+                          <Input
+                            value={music.url}
+                            onChange={(e) => updateMusicItem(index, 'url', e.target.value)}
+                            placeholder={music.source_type === 'youtube' ? 'https://youtube.com/watch?v=...' : 'https://example.com/music.mp3'}
+                            className="mt-1"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between mt-3">
+                        <Button
+                          type="button"
+                          variant={music.is_active ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setActiveMusic(music.id)}
+                          className={music.is_active ? 'bg-primary' : ''}
+                        >
+                          {music.is_active ? (
+                            <>
+                              <Check className="w-4 h-4 mr-1" />
+                              Aktif
+                            </>
+                          ) : 'Jadikan Aktif'}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeMusicItem(index)}
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Hapus
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Legacy music URL support */}
+              <div className="mt-4 pt-4 border-t">
+                <Label>Atau gunakan URL Musik Langsung (Legacy)</Label>
+                <Input
+                  value={formData.settings.music_url}
+                  onChange={(e) => updateFormData('settings', 'music_url', e.target.value)}
+                  placeholder="https://example.com/music.mp3"
+                  className="mt-1"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  URL musik langsung (MP3) sebagai fallback jika tidak ada musik di daftar
+                </p>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
         {/* Gifts Tab */}
         <TabsContent value="gifts">
           <div className="bg-white rounded-xl border p-6">
@@ -708,6 +1056,23 @@ const CreateInvitation = () => {
         <TabsContent value="content">
           <div className="bg-white rounded-xl border p-6 space-y-6">
             <div>
+              <Label>Ayat Al-Quran</Label>
+              <Textarea
+                value={formData.quran_verse}
+                onChange={(e) => setFormData({ ...formData, quran_verse: e.target.value })}
+                className="mt-1 min-h-[80px]"
+              />
+            </div>
+            <div>
+              <Label>Surat & Ayat</Label>
+              <Input
+                value={formData.quran_surah}
+                onChange={(e) => setFormData({ ...formData, quran_surah: e.target.value })}
+                placeholder="Q.S Ar-Rum : 21"
+                className="mt-1"
+              />
+            </div>
+            <div>
               <Label>Teks Pembuka</Label>
               <Textarea
                 value={formData.opening_text}
@@ -722,90 +1087,6 @@ const CreateInvitation = () => {
                 onChange={(e) => setFormData({ ...formData, closing_text: e.target.value })}
                 className="mt-1 min-h-[100px]"
               />
-            </div>
-            <div>
-              <Label>URL Video (YouTube Embed)</Label>
-              <Input
-                value={formData.video_url}
-                onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
-                placeholder="https://www.youtube.com/embed/..."
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label>URL Live Streaming</Label>
-              <Input
-                value={formData.streaming_url}
-                onChange={(e) => setFormData({ ...formData, streaming_url: e.target.value })}
-                placeholder="https://..."
-                className="mt-1"
-              />
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Settings Tab */}
-        <TabsContent value="settings">
-          <div className="bg-white rounded-xl border p-6 space-y-6">
-            <div>
-              <Label>URL Musik Background</Label>
-              <Input
-                value={formData.settings.music_url}
-                onChange={(e) => updateFormData('settings', 'music_url', e.target.value)}
-                placeholder="https://example.com/music.mp3"
-                className="mt-1"
-              />
-              <p className="text-xs text-muted-foreground mt-1">Format: MP3</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label>Warna Primer</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    type="color"
-                    value={formData.settings.primary_color}
-                    onChange={(e) => updateFormData('settings', 'primary_color', e.target.value)}
-                    className="w-12 h-10 p-1"
-                  />
-                  <Input
-                    value={formData.settings.primary_color}
-                    onChange={(e) => updateFormData('settings', 'primary_color', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Warna Sekunder</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    type="color"
-                    value={formData.settings.secondary_color}
-                    onChange={(e) => updateFormData('settings', 'secondary_color', e.target.value)}
-                    className="w-12 h-10 p-1"
-                  />
-                  <Input
-                    value={formData.settings.secondary_color}
-                    onChange={(e) => updateFormData('settings', 'secondary_color', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Warna Aksen</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input
-                    type="color"
-                    value={formData.settings.accent_color}
-                    onChange={(e) => updateFormData('settings', 'accent_color', e.target.value)}
-                    className="w-12 h-10 p-1"
-                  />
-                  <Input
-                    value={formData.settings.accent_color}
-                    onChange={(e) => updateFormData('settings', 'accent_color', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
             </div>
           </div>
         </TabsContent>
