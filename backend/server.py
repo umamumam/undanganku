@@ -26,7 +26,14 @@ MUSIC_DIR.mkdir(exist_ok=True)
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
+# Add SSL/TLS options for MongoDB Atlas
+client = AsyncIOMotorClient(
+    mongo_url,
+    tls=True,
+    tlsAllowInvalidCertificates=True,
+    serverSelectionTimeoutMS=10000,
+    connectTimeoutMS=10000
+)
 db = client[os.environ.get('DB_NAME', 'undanganku')]
 
 # JWT Settings
