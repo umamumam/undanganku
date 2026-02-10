@@ -702,6 +702,76 @@ async def delete_message(message_id: str, user: dict = Depends(get_current_user)
     await db.messages.delete_one({"id": message_id})
     return {"message": "Message deleted successfully"}
 
+# ============ GUEST MANAGEMENT ROUTES ============
+
+@api_router.get("/invitations/{invitation_id}/guests", response_model=List[GuestResponse])
+async def get_invitation_guests(invitation_id: str, user: dict = Depends(get_current_user)):
+    """Get all guests for an invitation"""
+    invitation = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    guests = await db.guests.find({"invitation_id": invitation_id}, {"_id": 0}).to_list(1000)
+    
+    # Update RSVP status for each guest from rsvps collection
+    for guest in guests:
+        rsvp = await db.rsvps.find_one({"invitation_id": invitation_id, "guest_name": guest["name"]})
+        guest["rsvp_status"] = rsvp["attendance"] if rsvp else None
+    
+    return guests
+
+@api_router.post("/invitations/{invitation_id}/guests", response_model=GuestResponse)
+async def add_guest(invitation_id: str, data: GuestCreate, user: dict = Depends(get_current_user)):
+    """Add a new guest to invitation"""
+    invitation = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    guest_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    doc = {
+        "id": guest_id,
+        "invitation_id": invitation_id,
+        "name": data.name,
+        "rsvp_status": None,
+        "created_at": now
+    }
+    await db.guests.insert_one(doc)
+    
+    result = await db.guests.find_one({"id": guest_id}, {"_id": 0})
+    return result
+
+@api_router.put("/invitations/{invitation_id}/guests/{guest_id}", response_model=GuestResponse)
+async def update_guest(invitation_id: str, guest_id: str, data: GuestUpdate, user: dict = Depends(get_current_user)):
+    """Update guest name"""
+    invitation = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    guest = await db.guests.find_one({"id": guest_id, "invitation_id": invitation_id})
+    if not guest:
+        raise HTTPException(status_code=404, detail="Guest not found")
+    
+    await db.guests.update_one({"id": guest_id}, {"$set": {"name": data.name}})
+    
+    result = await db.guests.find_one({"id": guest_id}, {"_id": 0})
+    return result
+
+@api_router.delete("/invitations/{invitation_id}/guests/{guest_id}")
+async def delete_guest(invitation_id: str, guest_id: str, user: dict = Depends(get_current_user)):
+    """Delete a guest"""
+    invitation = await db.invitations.find_one({"id": invitation_id, "user_id": user["id"]})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    guest = await db.guests.find_one({"id": guest_id, "invitation_id": invitation_id})
+    if not guest:
+        raise HTTPException(status_code=404, detail="Guest not found")
+    
+    await db.guests.delete_one({"id": guest_id})
+    return {"message": "Guest deleted successfully"}
+
 # ============ STATS ROUTE ============
 
 @api_router.get("/invitations/{invitation_id}/stats", response_model=StatsResponse)
