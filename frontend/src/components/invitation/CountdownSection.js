@@ -12,6 +12,10 @@ const CountdownSection = ({ countdown, onAddToCalendar }) => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Check if event has passed
+  const isEventPassed = countdown.days === 0 && countdown.hours === 0 && 
+                        countdown.minutes === 0 && countdown.seconds === 0;
+  
   const countdownItems = [
     { value: countdown.days, label: 'Hari' },
     { value: countdown.hours, label: 'Jam' },
