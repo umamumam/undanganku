@@ -11,6 +11,7 @@ import EditInvitation from "@/pages/admin/EditInvitation";
 import RSVPList from "@/pages/admin/RSVPList";
 import MessageList from "@/pages/admin/MessageList";
 import CreateInvitation from "@/pages/admin/CreateInvitation";
+import GuestManagementPage from "@/pages/admin/GuestManagementPage";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 const ProtectedRoute = ({ children }) => {
